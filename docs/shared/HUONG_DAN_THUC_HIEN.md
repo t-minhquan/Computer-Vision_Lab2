@@ -6,7 +6,7 @@
 - **Detailed Plan**: §1 Phạm vi; §2 Môi trường; §3 Notebook; §4 Phần A; §5 Phần B; §6 Thí nghiệm; §7 Báo cáo; §8 Nộp bài; §9 Rà soát.
 - **References**: [PDF gốc](../../pdf/Computer_Vision%2045.pdf), [README](../../README.md), [quy ước Markdown](../../agents/rules/MD_CONVENTION.md), [quy tắc báo cáo](../../agents/rules/RESULTS_REPORTING.md).
 - **Created**: 2026-11-11T00:25:41+07:00
-- **Last Updated**: 2026-11-11T00:34:48+07:00
+- **Last Updated**: 2026-11-11T08:12:27+07:00
 
 ---
 
@@ -41,7 +41,7 @@ Các trục khảo sát bên dưới là gợi ý của PDF, không phải ý t�
 
 ### 2.1. Hiện trạng
 
-Đã có [PDF](../../pdf/Computer_Vision%2045.pdf), [quy tắc](../../agents/README.md) và [README](../../README.md). Chưa có notebook, ảnh, chương trình thực hiện hoặc tệp khóa phiên bản thư viện. Những lệnh sau là hướng dẫn thiết lập, chưa được chạy để xác nhận môi trường bài tập.
+Đã có [PDF](../../pdf/Computer_Vision%2045.pdf), [quy tắc](../../agents/README.md) và [README](../../README.md). Đã có [template A](../../notebooks/phan_a_harris_va_hai_bien_the.ipynb), [template B](../../notebooks/phan_b_phan_vung_anh.ipynb), môi trường `.venv` và [khai báo thư viện](../../requirements.txt). Đã có 11 hàm phần A và 4 hàm phần B; requirements.txt đã khóa phiên bản thư viện trực tiếp. Chưa có ảnh hoặc kết quả thí nghiệm. Môi trường `.venv` dùng Python 3.12.6, đã cài thư viện để kiểm tra A/B. Thông tin nhóm và phân công được quản lý tại [README](../../README.md#nhom-va-phan-cong).
 
 ### 2.2. Thiết lập trên Windows PowerShell
 
@@ -68,7 +68,7 @@ Nhóm tự thống nhất và ghi rõ:
 - Điểm dùng `(row, col)`; khi vẽ, trục ngang là `col`, trục dọc là `row`.
 - Cách xử lý biên ảnh, đạo hàm, ngưỡng và ghép điểm.
 - Biểu diễn seeds, hạt giống hợp lệ, không trùng vị trí và định danh vùng ổn định.
-- Đường dẫn tương đối từ notebook. Tạo thư mục `anh/` để chứa ảnh nộp theo PDF; thư mục này hiện chưa có.
+- Đường dẫn tương đối từ notebook. Dùng [thư mục ảnh A](../../images/phan_a/) và [ảnh B](../../images/phan_b/) đã tạo, hiện chỉ có file giữ thư mục; nhóm tự thêm ảnh nộp theo PDF.
 - Nguồn ảnh và phép chỉnh sửa; lưu riêng ảnh biến đổi, giữ ảnh gốc.
 
 **Đầu ra bước này:** notebook mở bằng đúng kernel, đọc được ảnh, có thông tin môi trường và quy ước dữ liệu.
@@ -77,11 +77,13 @@ Nhóm tự thống nhất và ghi rõ:
 
 ## 3. Tổ chức notebook
 
+Đã tạo hai bản làm việc: [phần A](../../notebooks/phan_a_harris_va_hai_bien_the.ipynb) và [phần B](../../notebooks/phan_b_phan_vung_anh.ipynb). Đã cài đặt 11 hàm phần A và 4 hàm phần B; bảng số chưa có kết quả. Xem [cách mở và ghép bài](../../README.md#cấu-trúc-làm-việc-ab).
+
 PDF yêu cầu **một notebook duy nhất** tên `bt1_<Nhom>.ipynb`. Đây là tên nguyên văn, chưa phải tệp hiện có. Vì tiêu đề là Bài tập 2, nên xác nhận điểm không nhất quán này với giảng viên trước khi đổi tên.
 
 Đề xuất thứ tự các mục:
 
-1. Thông tin nhóm, mục tiêu, môi trường, nguồn ảnh.
+1. Liên kết thông tin nhóm và phân công trong README; mục tiêu, môi trường, nguồn ảnh trong notebook.
 2. Chính sách AI và quy ước dữ liệu.
 3. **Cài đặt — KHÔNG dùng AI: Phần A** — sinh viên tự viết.
 4. Kiểm chứng Phần A, đầy đủ hình và số đo.
@@ -335,7 +337,7 @@ Theo [bảng điểm](../../README.md#7-thang-điểm), A 50 điểm, B 50 đi�
 - [ ] Prompt nguyên văn ngay trên từng cell dùng AI; không dùng AI trong cài đặt.
 - [ ] Hàm góc/phân vùng dựng sẵn chỉ dùng ở phần đối chiếu được phép.
 - [ ] Đã kiểm tra tên `bt1_<Nhom>.ipynb` với giảng viên nếu còn nghi vấn.
-- [ ] Đúng một notebook và thư mục `anh/` đủ ảnh; không phụ thuộc đường dẫn cá nhân.
+- [ ] Đúng một notebook và thư mục `images/` đủ ảnh; không phụ thuộc đường dẫn cá nhân.
 
 README và hướng dẫn không thay notebook bắt buộc. PDF không yêu cầu nộp môi trường ảo hay toàn bộ quy tắc; theo hướng dẫn đóng gói bổ sung của giảng viên nếu có.
 

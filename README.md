@@ -6,9 +6,21 @@
 - **Detailed Plan**: Tổng quan; hiện trạng; quy định; hàm phải nộp; kiểm chứng; điểm số; checklist.
 - **References**: [PDF gốc](pdf/Computer_Vision%2045.pdf), [hướng dẫn chi tiết](docs/shared/HUONG_DAN_THUC_HIEN.md), [quy tắc dự án](agents/README.md).
 - **Created**: 2026-11-11T00:25:41+07:00
-- **Last Updated**: 2026-11-11T00:34:48+07:00
+- **Last Updated**: 2026-11-11T08:12:27+07:00
 
 ---
+
+<a id="nhom-va-phan-cong"></a>
+
+## Nhóm và phân công
+
+| Thành viên | MSSV | Công việc | Trạng thái |
+| --- | --- | --- | --- |
+| Chưa điền | Chưa điền | Chưa phân công | Chưa thực hiện |
+
+Thông tin nhóm và phân công cho cả phần A và B được cập nhật tại đây.
+
+Xem [pipeline A/B cho nhóm](docs/shared/PIPELINE_BAI_TAP.md): sơ đồ luồng, mã công việc A-01–A-06/B-01–B-06, đầu ra và checklist. Điền mã việc được giao vào bảng trên.
 
 ## 1. Tổng quan
 
@@ -24,9 +36,10 @@ A1 và A2 độc lập. ANMS chạy trên ứng viên Harris **một tỉ lệ**
 
 - [PDF đề bài, 9 trang](pdf/Computer_Vision%2045.pdf): nguồn yêu cầu chính thức.
 - [Hướng dẫn thực hiện chi tiết](docs/shared/HUONG_DAN_THUC_HIEN.md): môi trường, notebook, hợp đồng hàm, kiểm chứng, thí nghiệm và đóng gói.
+- [Pipeline làm việc theo phần A/B](docs/shared/PIPELINE_BAI_TAP.md): thứ tự thực hiện, phụ thuộc, đầu ra và cách phối hợp trong nhóm.
 - [Quy tắc dự án](agents/README.md): quy ước làm việc và tài liệu.
 
-Hiện có PDF, bộ quy tắc và hai tài liệu này; **chưa có notebook, mã thuật toán, ảnh thí nghiệm hay kết quả đo**. Các bước hướng dẫn là công việc cần thực hiện, không phải xác nhận bài đã hoàn thành.
+Đã có PDF, bộ quy tắc, hướng dẫn, môi trường `.venv` và **hai notebook làm việc A/B**. Đã cài đặt 11 hàm phần A và 4 hàm phần B. Chưa có ảnh thí nghiệm hoặc kết quả đo; notebook chưa phải bài làm hoàn chỉnh.
 
 ## 3. Bắt đầu
 
@@ -35,6 +48,60 @@ Hiện có PDF, bộ quy tắc và hai tài liệu này; **chưa có notebook, m
 3. Nhóm tự viết các hàm, hoàn thành kiểm chứng trang 5–8.
 4. Nhóm tự chọn dữ liệu, giả thuyết, tham số quét và phép đo cho ba cặp so sánh.
 5. Restart & Run All, lưu output và đóng gói notebook cùng ảnh.
+
+### Cấu trúc làm việc A/B
+
+```text
+notebooks/
+    phan_a_harris_va_hai_bien_the.ipynb
+    phan_b_phan_vung_anh.ipynb
+images/
+    phan_a/
+    phan_b/
+experiments/
+    results/
+        phan_a/
+        phan_b/
+requirements.txt
+```
+
+| Tài nguyên | Nội dung / trạng thái |
+| --- | --- |
+| [Notebook phần A](notebooks/phan_a_harris_va_hai_bien_the.ipynb) | Harris, Harris–Laplace, ANMS, repeatability; kiểm chứng và hai cặp thí nghiệm. Đã cài đặt 11 hàm; chưa đo thí nghiệm. |
+| [Notebook phần B](notebooks/phan_b_phan_vung_anh.ipynb) | Region Growing, SRG, frames, seed sensitivity; kiểm chứng và thí nghiệm, stale/ties. Đã cài đặt 4 hàm; chưa đo thí nghiệm. |
+| [Ảnh A](images/phan_a/) / [ảnh B](images/phan_b/) | Thư mục trống để nhóm thêm ảnh tự chọn và ghi nguồn. |
+| [Kết quả A](experiments/results/phan_a/) / [kết quả B](experiments/results/phan_b/) | Thư mục trống để lưu bảng số, hình và đường cong thực tế. |
+| [Khai báo thư viện](requirements.txt) | Đã khóa phiên bản thư viện trực tiếp theo `.venv`, bao gồm công cụ kiểm tra notebook. |
+
+Hai notebook chia theo phần A/B; không cần tạo thêm notebook riêng cho từng thuật toán.
+Mỗi hàm có hợp đồng trong Markdown; cả hai phần đã có mã cài đặt. Mỗi kiểm chứng có
+bảng kết quả và vị trí bổ sung mã; mỗi thí nghiệm có phiếu thiết kế, bảng số, chỗ vẽ và phân tích.
+Cả hai notebook đã bỏ toàn bộ cell prompt; thông tin nhóm và phân công nằm trong README.
+
+Nếu cần cài môi trường, chạy từ thư mục gốc (bước tạo template chưa chạy các lệnh cài):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m jupyter lab
+```
+
+Mở từng notebook với kernel của `.venv` và working directory là thư mục chứa notebook.
+Ảnh dùng đường dẫn tương đối `../images/phan_a/` hoặc `../images/phan_b/`; bảng/hình xuất vào
+[kết quả A](experiments/results/phan_a/) hoặc [kết quả B](experiments/results/phan_b/).
+Chạy phần chuẩn bị trước rồi làm các mục theo thứ tự; hai notebook không import lẫn nhau.
+
+Kiểm tra các hàm A/B từ thư mục gốc:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m pip check
+```
+
+Bộ kiểm tra gồm ảnh tổng hợp và trường hợp tính tay, kiểm tra seed, phá hòa, frames và sensitivity; chưa thay thế thí nghiệm trên ảnh tự chọn trong notebook.
+
+**Trước khi nộp:** ghép nội dung A/B vào một notebook `bt1_<Nhom>.ipynb`, giữ thứ tự
+định nghĩa trước khi gọi, cập nhật đường dẫn ảnh theo vị trí notebook cuối, rồi Restart & Run All
+và lưu đủ output. Gói nộp cần một notebook và [thư mục ảnh](images/); chưa tạo bản tổng hợp ở bước này.
 
 ## 4. Quy định quan trọng
 
@@ -100,7 +167,7 @@ Nguồn: PDF trang 9. Ba hàng thí nghiệm cộng lại là 34/100 điểm; c�
 - [ ] Có so sánh `lazy`/`frozen` và ảnh hưởng phá hòa.
 - [ ] Prompt nguyên văn ngay trên từng cell dùng AI.
 - [ ] Restart & Run All thành công, lưu notebook kèm output.
-- [ ] Nộp **một notebook duy nhất** cùng thư mục ảnh `anh/`, dùng đường dẫn tương đối.
+- [ ] Nộp **một notebook duy nhất** cùng thư mục ảnh `images/`, dùng đường dẫn tương đối.
 - [ ] Kiểm tra tên: PDF trang 2 ghi **`bt1_<Nhom>.ipynb`** dù tiêu đề là Bài tập 2; xác nhận với giảng viên trước khi đổi tên.
 
 PDF trang 9 quy định 0 điểm nếu dùng AI trong cài đặt hoặc dùng AI ở thí nghiệm mà không hề khai báo prompt nguyên văn; gọi hàm góc/phân vùng dựng sẵn trong hàm phải nộp; hoặc notebook không chạy toàn bộ/không có output.
