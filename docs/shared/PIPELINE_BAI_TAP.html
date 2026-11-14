@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Hướng dẫn tương tác đầy đủ phần A Harris, Harris–Laplace, ANMS và phần B Region Growing, SRG: thuật toán, kiểm chứng, thí nghiệm, phân công và nghiệm thu."><title>Pipeline bài tập · Phần A & B</title><style>
+:root{--ink:#202c2a;--muted:#5d6c67;--paper:#f7f7f1;--line:#d8e0da;--a:#176d60;--a-soft:#e6f2ec;--b:#9a4c13;--b-soft:#fcf0de;--side:260px;--accent:var(--a)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.7 "Segoe UI",Arial,sans-serif}button,input{font:inherit}button,a,input{touch-action:manipulation}a{color:var(--a);text-underline-offset:4px}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #2877b3;outline-offset:4px}button{color:inherit}h1,h2,h3,h4{line-height:1.25;letter-spacing:-.025em}h1{font-size:clamp(42px,5.5vw,75px);font-weight:650;margin:20px 0}h2{font-size:clamp(28px,3vw,42px);margin:0 0 16px}h3{font-size:23px;margin:28px 0 14px}h4{font-size:19px;margin:26px 0 12px}p{margin:12px 0 18px}strong{font-weight:650}code,pre{font-family:Consolas,"Courier New",monospace}code{font-size:.87em;overflow-wrap:anywhere}p code,li code,td code{background:#e9eee8;padding:2px 5px;border-radius:4px}pre{padding:22px;background:#20352e;color:#f1f7ef;border-radius:12px;overflow:auto;font-size:14px;line-height:1.7}pre code{white-space:pre;overflow-wrap:normal}li{margin:7px 0}ul,ol{padding-left:25px}
+.skip{position:fixed;top:-70px;left:20px;padding:12px;background:white;z-index:100}.skip:focus{top:10px}.sidebar{width:var(--side);position:fixed;inset:0 auto 0 0;background:#fffef8;border-right:1px solid var(--line);padding:28px 24px;overflow-y:auto;z-index:30}.brand{text-decoration:none;font-size:20px;font-weight:750;letter-spacing:-.04em}.brand small{display:block;font-size:11px;letter-spacing:.15em;font-weight:500;color:var(--muted)}.sidebar nav{margin:35px 0 28px}.sidebar nav a{display:block;padding:10px 12px;margin:4px 0;border-radius:8px;color:var(--muted);font-size:14px;text-decoration:none;line-height:1.5}.sidebar nav a.active{background:var(--a-soft);color:var(--a);font-weight:700}.sidebar nav a:hover{background:#eff2eb}.side-bottom{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--muted)}.side-bottom progress{width:100%;accent-color:var(--a);height:7px}.side-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px}.side-actions button,.toolbar button{border:1px solid var(--line);background:#fffef8;border-radius:7px;padding:7px 11px;font-size:13px}.side-actions button:hover,.toolbar button:hover{background:var(--a-soft)}.menu-button{display:none}.page{margin-left:var(--side)}.toolbar{background:#f7f7f1;border-bottom:1px solid var(--line);padding:14px 4.5%;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.search{flex:1;min-width:180px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.search input{background:white;border:1px solid #a9b9b1;padding:9px 12px;border-radius:8px;min-width:180px;flex:1;font-size:14px}.search label{font-size:13px}.search-status{font-size:12px;min-width:68px;color:var(--muted)}main{max-width:1400px;margin:auto;padding:0 5.2%}section{padding:70px 0;border-bottom:1px solid var(--line);min-width:0}section:last-child{border:0}.hero{padding-top:64px}.eyebrow{font-size:11px;letter-spacing:.13em;font-weight:750;color:var(--accent);margin:0 0 12px}.lead{font-size:19px;line-height:1.65;color:var(--muted);max-width:730px}.intro-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center}.primary{display:inline-flex;gap:20px;background:var(--a);color:white;border-radius:9px;padding:12px 18px;text-decoration:none;font-weight:600;font-size:14px;margin:14px 18px 10px 0}.text-link{font-size:14px}.overview-map{padding:25px 20px;border:1px solid var(--line);border-radius:20px;background:#fffef9}.map-start{text-align:center;font-size:13px;color:var(--muted);padding-bottom:20px}.map-branches{display:grid;grid-template-columns:1fr 1fr;gap:12px}.map-branches a{border-radius:12px;padding:20px 15px;text-decoration:none;border-top:4px solid var(--a)}.map-branches small{display:block;letter-spacing:.1em;font-size:10px;font-weight:700}.map-branches strong{font-size:23px;display:block;margin:10px 0}.map-branches span{display:block;font-size:11px;line-height:1.5}.map-a{background:var(--a-soft)}.map-branches .map-b{background:var(--b-soft);color:var(--b);border-color:var(--b)}.map-end{margin-top:16px;text-align:center;font-size:12px;padding:12px 8px;border:1px solid var(--line);border-radius:8px}.muted-box{color:var(--muted);border-style:dashed}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin:45px 0 25px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.stats>div{display:flex;flex-direction:column;padding:20px 12px;border-right:1px solid var(--line)}.stats>div:last-child{border:0}.stats strong{font-size:38px;font-weight:500;line-height:1.2}.stats span{font-size:12px;color:var(--muted);margin-top:8px}.notice{background:#eef1e9;border-left:3px solid var(--a);border-radius:0 8px 8px 0;padding:15px 20px;font-size:14px}.section-heading{display:flex;gap:20px;align-items:flex-start;margin-bottom:22px}.section-number{font-size:25px;border:1px solid var(--accent);color:var(--accent);border-radius:11px;min-width:55px;height:55px;display:grid;place-items:center}.part-b{--accent:var(--b)}.part-b .section-number{background:var(--b-soft)}.part-a .section-number{background:var(--a-soft)}.table-wrap{overflow-x:auto;margin:20px 0 28px;border:1px solid var(--line);border-radius:10px;background:#fffef9}table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.6}th,td{text-align:left;vertical-align:top;padding:15px;border-bottom:1px solid var(--line);min-width:125px}th{background:#edf1e9;font-size:12px;letter-spacing:.015em}tr:last-child td{border:0}td:first-child{font-weight:600}table code{font-size:12px}details{border:1px solid var(--line);background:#fffef9;border-radius:12px;margin:28px 0}summary{cursor:pointer;padding:19px 22px;font-weight:650;line-height:1.5}details[open]>summary{border-bottom:1px solid var(--line)}.details-body{padding:8px 24px 24px;min-width:0}.details-body .table-wrap{margin-left:0;margin-right:0}.formula{background:#eaf0e9;border:1px solid #d3ddd2;border-radius:9px;padding:18px 20px;margin:20px 0;font-family:Cambria,Georgia,serif;font-size:18px;line-height:1.9;overflow-wrap:anywhere}.part-b .formula{background:#fcf1e1;border-color:#ead9c4}.stepper{border:1px solid var(--line);border-radius:16px;background:#fffef9;margin:30px 0;padding:24px}.step-help{font-size:13px;color:var(--muted)}.step-buttons{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0}.step-button{flex:1 1 140px;display:flex;align-items:center;gap:10px;padding:12px 10px;min-height:62px;border:1px solid var(--line);border-radius:9px;background:var(--paper);font-size:12px;text-align:left;font-weight:650}.step-button span{font-size:10px;color:var(--accent);border:1px solid var(--line);border-radius:5px;padding:4px;min-width:27px;text-align:center}.step-button[aria-pressed=true]{background:var(--accent);color:white;border-color:var(--accent)}.step-button[aria-pressed=true] span{color:white;border-color:#ffffff70}.step-panel{padding:2px 6px}.step-panel h3{font-size:22px;color:var(--accent)}.js .step-panel:not(.is-active){display:none}.step-panel dl{margin-bottom:0}.step-panel dl>div{display:grid;grid-template-columns:80px 1fr;gap:18px;margin:10px 0;padding:10px 0;border-top:1px solid var(--line)}dt{font-size:12px;font-weight:700;color:var(--muted)}dd{margin:0;font-size:14px}.pitfall dd{color:var(--b)}.illustration{margin:30px 0;padding:20px;background:white;border:1px solid var(--line);border-radius:13px}.illustration svg{display:block;width:100%;max-width:700px;margin:auto}.illustration text{font:13px "Segoe UI",Arial,sans-serif;fill:#43534c}figcaption{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}.check{list-style:none;margin-left:-25px;border-bottom:1px solid var(--line);padding:12px 0}.check label{display:flex;gap:12px;cursor:pointer;font-size:14px}.check input{width:19px;height:19px;min-width:19px;margin:3px 0 0;accent-color:var(--accent)}.check input:checked+span{color:var(--muted);text-decoration:line-through}.group-progress{color:var(--accent);font-weight:650;font-size:13px}.resource-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:25px 0}.resource-grid a{display:block;background:white;border:1px solid var(--line);border-radius:10px;text-decoration:none;padding:20px}.resource-grid span{display:block;color:var(--muted);font-size:13px;margin-top:6px}.small{font-size:12px;color:var(--muted)}mark.search-hit{background:#ffed98;color:#332800;border-radius:2px}mark.current-hit{background:#ffbc45;outline:2px solid #a75a12}.storage-note{line-height:1.5}.no-js{padding:12px 5%;background:#fbeacb}.footer{font-size:12px;color:var(--muted);padding:25px 5.2%;max-width:1400px;margin:auto}
+@media(min-width:1550px){:root{--side:280px}body{font-size:17px}}@media(max-width:1100px){:root{--side:220px}.sidebar{padding:25px 17px}.intro-grid{grid-template-columns:1fr}.overview-map{max-width:560px}.toolbar{gap:8px}.toolbar>.tool-actions{display:flex;gap:5px}.map-branches strong{font-size:24px}}
+@media(max-width:760px){:root{--side:0px}body{font-size:15px}.sidebar{display:none;width:min(310px,88vw);top:55px;box-shadow:10px 0 30px #0002}.sidebar.is-open{display:block}.menu-button{display:block;background:#fffef8;border:0;border-bottom:1px solid var(--line);padding:13px 20px;width:100%;text-align:left;position:sticky;top:0;z-index:40;font-weight:650}.page{margin-left:0}.toolbar{padding:14px 5%}main{padding:0 5%}section{padding:45px 0}.hero{padding-top:30px}.intro-grid{gap:25px}.overview-map{padding:16px}.stats{margin-top:28px}.stats strong{font-size:30px}.stats span{font-size:11px}.stats>div{padding:17px 8px}.section-heading{gap:13px}.section-number{min-width:44px;height:44px;font-size:21px}.stepper{padding:18px 14px}.step-button{flex-basis:125px}.step-panel dl>div{grid-template-columns:1fr;gap:4px}.resource-grid{grid-template-columns:1fr}.details-body{padding:5px 14px 18px}summary{padding:17px 15px}th,td{padding:12px;min-width:130px}.formula{padding:14px;font-size:16px}.search label{width:100%}.search-status{min-width:65px}.illustration{padding:12px}h1{font-size:46px}h2{font-size:30px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+@page{size:A4;margin:16mm 13mm}@media print{body{background:white;color:#111;font:10pt/1.5 Arial,sans-serif}.sidebar,.toolbar,.menu-button,.skip,.primary,.text-link,.step-buttons,.step-help,.group-progress,.no-js{display:none!important}.page{margin:0}main{max-width:none;padding:0}section{padding:20px 0;break-before:auto}.hero{padding-top:0}h1{font-size:34pt}h2{font-size:23pt}h3{font-size:15pt}h4{font-size:12pt}.section-heading{break-after:avoid}.intro-grid{display:block}.overview-map{max-width:none;margin-top:20px}.stats{margin:20px 0}a{color:#111}details{border:0;background:white;margin:15px 0}summary{border:0!important;padding:8px 0;font-size:13pt;list-style:none}.details-body{padding:0}.js .step-panel,.js .step-panel:not(.is-active){display:block!important}.stepper{padding:12px;break-inside:auto}.step-panel{break-inside:avoid}.table-wrap{overflow:visible;border-radius:0}table{font-size:9pt;table-layout:fixed}th,td{min-width:0;padding:7px;overflow-wrap:anywhere}tr{break-inside:avoid}pre{white-space:pre-wrap;background:#f1f1f1;color:#111;font-size:9pt;padding:12px}pre code{white-space:pre-wrap;overflow-wrap:anywhere}.formula{font-size:12pt;break-inside:avoid}.check{break-inside:avoid}.check input{appearance:none;border:1px solid #555;width:12px;height:12px;min-width:12px}.check input:checked{background:#555;print-color-adjust:exact}.resource-grid{display:block}.resource-grid a{padding:10px}.illustration{break-inside:avoid}.illustration svg{max-height:130px}mark.search-hit,mark.current-hit{background:none;outline:0;color:inherit}.footer{padding:15px 0;font-size:8pt}.notice{break-inside:avoid}.small{font-size:8pt}}
+
+.branch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.branch-lane{border:1px dashed var(--line);border-radius:10px;padding:15px;min-width:0}.branch-lane .step-buttons{margin:8px 0 0}.flow-caption{text-align:center;color:var(--muted);font-size:12px;margin:12px 0}.flow-sequence .step-button:not(:last-child)::after{content:"→";margin-left:auto;color:var(--accent)}.flow-sequence .step-button[aria-pressed=true]::after{color:white}
+@media(max-width:760px){.search{flex-basis:100%;width:100%}.search input{min-width:0;flex-basis:calc(100% - 90px)}.toolbar>.tool-actions{display:flex;gap:8px}.branch-grid{grid-template-columns:1fr}.branch-lane{padding:13px}.stepper .eyebrow{line-height:1.6}.step-buttons{margin:12px 0}.flow-sequence .step-button{flex-basis:100%}.flow-sequence .step-button:not(:last-child)::after{content:"↓"}}
+@media print{.flow-map{display:none!important}}
+</style></head>
+<body><a class="skip" href="#main">Đến nội dung chính</a><button id="menu-toggle" class="menu-button" type="button" aria-controls="sidebar" aria-expanded="false">☰ Mục lục · Computer Vision</button>
+<aside id="sidebar" class="sidebar"><a class="brand" href="#tong-quan">CV / LAB 02<small>HƯỚNG DẪN LÀM BÀI</small></a><nav aria-label="Mục lục"><a href="#tong-quan">Tổng quan</a><a href="#chuan-bi">00 · Chuẩn bị & phối hợp</a><a href="#phan-a">A · Harris và hai biến thể</a><a href="#phan-b">B · Region Growing & SRG</a><a href="#thi-nghiem">03 · Thiết kế thí nghiệm</a><a href="#loi-thuong-gap">? · Lỗi thường gặp</a><a href="#nghiem-thu">✓ · Nghiệm thu & đóng gói</a><a href="#tai-lieu">Tài liệu & nơi làm việc</a></nav><div class="side-bottom"><strong>Checklist của bạn</strong><p id="overall-count" aria-live="polite">Chưa đánh dấu</p><progress id="overall-progress" value="0" max="1" aria-label="Tiến độ checklist"></progress><p id="storage-note" class="storage-note">Lưu trên trình duyệt này khi được hỗ trợ; đây là dấu theo dõi cá nhân, không xác nhận kết quả đã đạt.</p><div class="side-actions"><button id="print-page" type="button">In / Lưu PDF</button><button id="reset-checks" type="button">Đặt lại checklist</button></div></div></aside>
+<div class="page"><div class="toolbar"><div class="search" role="search"><label for="search-input">Tìm trong tài liệu</label><input id="search-input" type="search" placeholder="Harris, lazy, A-04…" autocomplete="off"><span id="search-status" class="search-status" role="status"></span><button id="search-prev" type="button" aria-label="Kết quả trước" disabled>↑</button><button id="search-next" type="button" aria-label="Kết quả sau" disabled>↓</button><button id="search-clear" type="button">Xóa tìm</button></div><div class="tool-actions"><button id="expand-all" type="button">Mở chi tiết</button> <button id="collapse-all" type="button">Thu gọn</button></div></div><noscript><p class="no-js">JavaScript đang tắt: bạn vẫn đọc được toàn bộ nội dung và các bước; tìm kiếm và lưu checklist cần JavaScript.</p></noscript><main id="main" tabindex="-1">
+<section id="tong-quan" data-searchable class="hero"><div class="intro-grid"><div><p class="eyebrow">COMPUTER VISION · BÀI TẬP 2</p><h1>Từ thuật toán<br>đến bài nộp.</h1><p class="lead">Một lộ trình cho nhóm: hiểu cách làm, kiểm chứng đúng, thiết kế thí nghiệm và giải thích điều quan sát được.</p><a class="primary" href="#phan-a">Bắt đầu phần A <span aria-hidden="true">↗</span></a><a class="text-link" href="#phan-b">Đến phần B →</a></div><div class="overview-map" aria-label="Luồng làm bài"><div class="map-start">Chuẩn bị chung</div><div class="map-branches"><a href="#phan-a" class="map-a"><small>PHẦN A</small><strong>Điểm góc</strong><span>Harris · Harris–Laplace · ANMS</span></a><a href="#phan-b" class="map-b"><small>PHẦN B</small><strong>Phân vùng</strong><span>Region Growing · SRG</span></a></div><div class="map-end">Kiểm chứng → Thí nghiệm → Phân tích</div><div class="map-end muted-box">Rà soát chéo · Ghép bài · Chạy sạch</div></div></div><div class="stats"><div><strong>15</strong><span>hàm cần hiểu & rà soát</span></div><div><strong>10</strong><span>kiểm chứng bắt buộc</span></div><div><strong>03</strong><span>cặp thí nghiệm đối chiếu</span></div></div><p class="notice">Hiện đã có mã hàm và bộ kiểm tra tự động. Các con số trên là số hạng mục cần hoàn thành; kết quả trên ảnh tự chọn, bảng số và phân tích vẫn do nhóm bổ sung.</p></section>
+<section id="chuan-bi" data-searchable><div class="section-heading"><span class="section-number">00</span><div><p class="eyebrow">THỐNG NHẤT TRƯỚC KHI CHIA VIỆC</p><h2>Chuẩn bị & phối hợp</h2></div></div><p>Đã có 11 hàm A, 4 hàm B và <a href="../../tests/">bộ kiểm tra tự động</a>. Nhóm tiếp tục từ bước rà soát thuật toán, bổ sung ảnh, chạy các kiểm chứng có hình/số đo, thiết kế thí nghiệm và viết phân tích. Có hàm và chạy được notebook chưa đồng nghĩa hoàn thành bài tập.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Phần</th>
+  <th>Nơi làm bài</th>
+  <th>Ảnh đầu vào</th>
+  <th>Kết quả cần lưu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A</td>
+  <td><a href="../../notebooks/phan_a_harris_va_hai_bien_the.ipynb">Notebook A</a></td>
+  <td><a href="../../images/phan_a/">Ảnh A</a></td>
+  <td><a href="../../experiments/results/phan_a/">Kết quả A</a></td>
+</tr>
+<tr>
+  <td>B</td>
+  <td><a href="../../notebooks/phan_b_phan_vung_anh.ipynb">Notebook B</a></td>
+  <td><a href="../../images/phan_b/">Ảnh B</a></td>
+  <td><a href="../../experiments/results/phan_b/">Kết quả B</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>Thông tin thành viên, MSSV và người phụ trách chỉ cập nhật tại <a href="../../README.md#nhom-va-phan-cong">bảng phân công trong README</a>. Điền mã việc bên dưới vào cột Công việc, kèm trạng thái: Chưa làm / Đang làm / Chờ rà soát / Hoàn thành. Chỉ đánh dấu hoàn thành khi có đủ đầu ra và người khác kiểm tra lại được. Không tự ghi kết quả dự kiến vào bảng số đo.</p>
+<p><strong>Chuẩn bị chung:</strong> dùng Python của môi trường đã cài <a href="../../requirements.txt">requirements</a>; ghi phiên bản, thiết bị, thời điểm và RNG seed khi chạy. Mở notebook với working directory là thư mục chứa notebook. Ảnh A/B dùng đường dẫn tương đối đến các thư mục ảnh trong bảng; miền cường độ và tọa độ <code>(row, col)</code> phải nhất quán.</p>
+<p><strong>Cách chia việc:</strong> giao A và B cho hai đầu mối độc lập. Trong A, chia A1 và A2 sau khi thống nhất Harris chung. Trong B, chia việc rà soát Region Growing và SRG từ cùng dữ liệu. Các đầu mối thống nhất cấu hình trước khi ghép bảng so sánh; mỗi notebook chỉ có một người tích hợp tại một thời điểm để tránh xung đột cell/output.</p>
+<div class="command-card"><h3>Khởi động tại thư mục gốc</h3><pre><code>.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m jupyter lab</code></pre><p>Mở đúng kernel của môi trường đã cài. Từ trang hướng dẫn, ảnh nằm ở <a href="../../images/">thư mục images</a>; từ notebook làm việc dùng <code>../images/phan_a/</code> hoặc <code>../images/phan_b/</code>.</p></div><details open class="reference" data-initial-collapse><summary>Môi trường, thư viện và quy ước dữ liệu chi tiết</summary><div class="details-body"><h4>2.1. Hiện trạng</h4>
+<p>Đã có <a href="../../pdf/Computer_Vision%2045.pdf">PDF</a>, <a href="../../agents/README.md">quy tắc</a> và <a href="../../README.md">README</a>. Đã có <a href="../../notebooks/phan_a_harris_va_hai_bien_the.ipynb">template A</a>, <a href="../../notebooks/phan_b_phan_vung_anh.ipynb">template B</a>, môi trường <code>.venv</code> và <a href="../../requirements.txt">khai báo thư viện</a>. Đã có 11 hàm phần A và 4 hàm phần B; requirements.txt đã khóa phiên bản thư viện trực tiếp. Chưa có ảnh hoặc kết quả thí nghiệm. Môi trường <code>.venv</code> dùng Python 3.12.6, đã cài thư viện để kiểm tra A/B. Thông tin nhóm và phân công được quản lý tại <a href="../../README.md#nhom-va-phan-cong">README</a>.</p>
+<h4>2.2. Thiết lập trên Windows PowerShell</h4>
+<p>Mở terminal tại thư mục gốc dự án, chạy lần lượt:</p>
+<pre><code class="language-powershell">python --version
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install numpy matplotlib scipy opencv-python jupyterlab ipykernel
+.\.venv\Scripts\python.exe -m pip check
+.\.venv\Scripts\python.exe -m pip freeze
+.\.venv\Scripts\python.exe -m jupyter lab
+</code></pre>
+<p>Gọi trực tiếp Python của môi trường giúp tránh phụ thuộc thao tác kích hoạt PowerShell. Cài thư viện <strong>không có nghĩa mọi hàm đều được phép</strong>; quyền sử dụng từng hàm theo PDF trang 2 và <a href="../../README.md#4-quy-%C4%91%E1%BB%8Bnh-quan-tr%E1%BB%8Dng">bảng trong README</a>.</p>
+<p>Chọn kernel thuộc môi trường vừa tạo. Ghi phiên bản Python, NumPy, SciPy, Matplotlib và OpenCV trong notebook. Sau khi môi trường chạy ổn định, lưu các phiên bản đã kiểm chứng để tái lập; đề không ấn định phiên bản thư viện cụ thể.</p>
+<h4>2.3. Quy ước dữ liệu</h4>
+<p>Nhóm tự thống nhất và ghi rõ:</p>
+<ul>
+<li>Ảnh xám <code>(H, W)</code>, kiểu số thực, miền cường độ cụ thể. Ngưỡng phải cùng đơn vị với ảnh.</li>
+<li>Điểm dùng <code>(row, col)</code>; khi vẽ, trục ngang là <code>col</code>, trục dọc là <code>row</code>.</li>
+<li>Cách xử lý biên ảnh, đạo hàm, ngưỡng và ghép điểm.</li>
+<li>Biểu diễn seeds, hạt giống hợp lệ, không trùng vị trí và định danh vùng ổn định.</li>
+<li>Đường dẫn tương đối từ notebook. Dùng <a href="../../images/phan_a/">thư mục ảnh A</a> và <a href="../../images/phan_b/">ảnh B</a> đã tạo, hiện chỉ có file giữ thư mục; nhóm tự thêm ảnh nộp theo PDF.</li>
+<li>Nguồn ảnh và phép chỉnh sửa; lưu riêng ảnh biến đổi, giữ ảnh gốc.</li>
+</ul>
+<p><strong>Đầu ra bước này:</strong> notebook mở bằng đúng kernel, đọc được ảnh, có thông tin môi trường và quy ước dữ liệu.</p>
+</div></details></section>
+<section id="phan-a" data-searchable class="part-a"><div class="section-heading"><span class="section-number">A</span><div><p class="eyebrow">50 ĐIỂM · HAI NHÁNH ĐỐI CHIẾU</p><h2>Harris và hai biến thể</h2></div></div><p class="lead">Tìm điểm góc, chọn tỉ lệ đặc trưng và phân bố điểm. Harris một tỉ lệ là nền chung; ANMS không phụ thuộc đầu ra Harris–Laplace.</p><div class="stepper" data-stepper="A"><p class="eyebrow">ĐỌC THUẬT TOÁN THEO TỪNG BƯỚC</p><p class="step-help">Bấm từng bước để xem đầu vào, cách làm và đầu ra. Dùng phím mũi tên để chuyển bước.</p><div class="flow-map" role="group" aria-label="Sơ đồ các bước phần A"><div class="step-buttons flow-sequence"><button class="step-button" type="button" data-step="a-input" aria-controls="a-input" aria-pressed="false"><span>01</span>Ảnh & quy ước</button><button class="step-button" type="button" data-step="a-blur" aria-controls="a-blur" aria-pressed="false"><span>02</span>Làm mờ & tensor</button><button class="step-button" type="button" data-step="a-harris" aria-controls="a-harris" aria-pressed="false"><span>03</span>Response & NMS</button></div><p class="flow-caption">↓ Từ nền Harris, chia hai nhánh độc lập ↓</p><div class="branch-grid"><div class="branch-lane"><p class="eyebrow">A1 · CHỌN TỈ LỆ</p><div class="step-buttons"><button class="step-button" type="button" data-step="a-scale" aria-controls="a-scale" aria-pressed="false"><span>A1</span>Tháp tỉ lệ</button><button class="step-button" type="button" data-step="a-log" aria-controls="a-log" aria-pressed="false"><span>A1</span>Chọn cực trị LoG</button></div></div><div class="branch-lane"><p class="eyebrow">A2 · CHỌN PHÂN BỐ ĐIỂM</p><div class="step-buttons"><button class="step-button" type="button" data-step="a-select" aria-controls="a-select" aria-pressed="false"><span>A2</span>ANMS ↔ top_n</button></div></div></div><p class="flow-caption">↓ Cùng quy ước đo, mỗi cặp một thí nghiệm ↓</p><div class="step-buttons"><button class="step-button" type="button" data-step="a-measure" aria-controls="a-measure" aria-pressed="false"><span>04</span>Đo & đối chiếu</button></div></div><div class="step-panels"><article class="step-panel" id="a-input" tabindex="-1"><h3>01 · Ảnh & quy ước</h3><dl><div><dt>Đầu vào</dt><dd>Ảnh xám (H, W), nguồn ảnh và cấu hình.</dd></div><div><dt>Cách làm</dt><dd>Chuyển sang float64, giữ nguyên miền cường độ; dùng tọa độ (row, col), biên phản xạ và đạo hàm sai phân trung tâm theo notebook.</dd></div><div><dt>Đầu ra</dt><dd>Ảnh làm việc và cấu hình tiền xử lý tái lập.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Đổi miền 0–255 sang 0–1 nhưng giữ nguyên ngưỡng tuyệt đối; nhầm row và col.</dd></div></dl></article><article class="step-panel" id="a-blur" tabindex="-1"><h3>02 · Làm mờ & tensor</h3><dl><div><dt>Đầu vào</dt><dd>Ảnh I, sigma_d và sigma_i.</dd></div><div><dt>Cách làm</dt><dd>Làm mờ ở sigma_d, tính Lx/Ly, rồi làm mờ các tích Lx², LxLy, Ly² ở sigma_i. Nhân cả ba thành phần với sigma_d².</dd></div><div><dt>Đầu ra</dt><dd>Mxx, Mxy, Myy cùng kích thước ảnh.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Nhầm sigma đạo hàm với sigma tích phân hoặc quên chuẩn hóa sigma_d².</dd></div></dl></article><article class="step-panel" id="a-harris" tabindex="-1"><h3>03 · Response & NMS</h3><dl><div><dt>Đầu vào</dt><dd>Tensor cấu trúc, k và thresh_rel.</dd></div><div><dt>Cách làm</dt><dd>Tính R = det(M) − k·tr(M)²; giữ cực đại không gian có R dương vượt thresh_rel·max(R), sắp response giảm dần.</dd></div><div><dt>Đầu ra</dt><dd>Ứng viên Harris một tỉ lệ (N, 3): row, col, response.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Giữ tất cả pixel R dương; coi response lớn đồng nghĩa chọn đúng tỉ lệ.</dd></div></dl></article><article class="step-panel" id="a-scale" tabindex="-1"><h3>A1 · Tháp tỉ lệ</h3><dl><div><dt>Đầu vào</dt><dd>Ảnh gốc và dãy sigma_n = sigma0·xiⁿ.</dd></div><div><dt>Cách làm</dt><dd>Tại mỗi sigma_n tính Harris với sigma_i = sigma_n, sigma_d = 0.7·sigma_n, đồng thời tính LoG chuẩn hóa trên cùng ảnh.</dd></div><div><dt>Đầu ra</dt><dd>Ứng viên không gian và bản đồ |LoG| ở từng sigma.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Tháp ở đây là dãy tỉ lệ làm mờ trên cùng hệ tọa độ, không tự thay kích thước ảnh.</dd></div></dl></article><article class="step-panel" id="a-log" tabindex="-1"><h3>A1 · Chọn cực trị LoG</h3><dl><div><dt>Đầu vào</dt><dd>Ứng viên tầng n và LoG ở n−1, n, n+1.</dd></div><div><dt>Cách làm</dt><dd>Giữ điểm nếu |LoG| tại cùng tọa độ lớn hơn nghiêm ngặt hai tầng kề và log_thresh; bỏ hai tầng đầu/cuối.</dd></div><div><dt>Đầu ra</dt><dd>Harris–Laplace (N, 4): row, col, sigma, response.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Chọn sigma theo R lớn nhất; so LoG ở các tọa độ khác nhau hoặc giữ tầng không đủ hai hàng xóm.</dd></div></dl></article><article class="step-panel" id="a-select" tabindex="-1"><h3>A2 · ANMS ↔ top_n</h3><dl><div><dt>Đầu vào</dt><dd>Cùng ứng viên Harris một tỉ lệ và cùng n_keep.</dd></div><div><dt>Cách làm</dt><dd>top_n xếp theo response. ANMS tính khoảng cách tới điểm thỏa fi < c_robust·fj, rồi chọn bán kính giảm dần. Không có điểm mạnh hơn thì bán kính vô cùng.</dd></div><div><dt>Đầu ra</dt><dd>Hai tập tối đa n_keep điểm; dùng cùng lưới khi so độ phủ.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Đưa đầu ra Harris–Laplace vào ANMS; so hai tập khác N hoặc khác ứng viên.</dd></div></dl></article><article class="step-panel" id="a-measure" tabindex="-1"><h3>04 · Đo & đối chiếu</h3><dl><div><dt>Đầu vào</dt><dd>Điểm A/B và callable ánh xạ A sang B; img_shape của B.</dd></div><div><dt>Cách làm</dt><dd>Chỉ đếm điểm A chiếu hợp lệ trong B. Với mỗi điểm đó, kiểm tra có ít nhất một điểm B cách ≤ eps. Quy ước notebook cho phép dùng chung B; không có điểm hợp lệ trả 0.</dd></div><div><dt>Đầu ra</dt><dd>Repeatability ∈ [0,1], số điểm hợp lệ, hình và bảng số.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Sai chiều biến đổi, lấy cả điểm ngoài ảnh vào mẫu số hoặc đổi eps giữa hai phương pháp.</dd></div></dl></article></div></div><figure class="illustration"><svg viewBox="0 0 640 170" role="img" aria-labelledby="dots-title dots-desc"><title id="dots-title">Minh họa lựa chọn theo độ mạnh và độ phân bố</title><desc id="dots-desc">Bên trái điểm được chọn tập trung thành cụm; bên phải điểm trải ra nhiều vùng. Đây là sơ đồ khái niệm, không phải kết quả chạy.</desc><rect x="8" y="8" width="296" height="125" rx="12" fill="#edf3f1"/><rect x="336" y="8" width="296" height="125" rx="12" fill="#edf3f1"/><g fill="#b8c9c4"><circle cx="30" cy="30" r="4"/><circle cx="358" cy="30" r="4"/><circle cx="52" cy="35" r="4"/><circle cx="380" cy="35" r="4"/><circle cx="75" cy="28" r="4"/><circle cx="403" cy="28" r="4"/><circle cx="38" cy="55" r="4"/><circle cx="366" cy="55" r="4"/><circle cx="62" cy="60" r="4"/><circle cx="390" cy="60" r="4"/><circle cx="82" cy="48" r="4"/><circle cx="410" cy="48" r="4"/><circle cx="44" cy="80" r="4"/><circle cx="372" cy="80" r="4"/><circle cx="72" cy="85" r="4"/><circle cx="400" cy="85" r="4"/><circle cx="130" cy="50" r="4"/><circle cx="458" cy="50" r="4"/><circle cx="195" cy="90" r="4"/><circle cx="523" cy="90" r="4"/><circle cx="248" cy="40" r="4"/><circle cx="576" cy="40" r="4"/><circle cx="270" cy="105" r="4"/><circle cx="598" cy="105" r="4"/><g fill="#176d60"><circle cx="30" cy="30" r="6"/><circle cx="52" cy="35" r="6"/><circle cx="38" cy="55" r="6"/><circle cx="62" cy="60" r="6"/><circle cx="44" cy="80" r="6"/><circle cx="72" cy="85" r="6"/><circle cx="358" cy="30" r="6"/><circle cx="410" cy="48" r="6"/><circle cx="458" cy="50" r="6"/><circle cx="523" cy="90" r="6"/><circle cx="576" cy="40" r="6"/><circle cx="598" cy="105" r="6"/></g></g><text x="156" y="158" text-anchor="middle">Chọn theo độ mạnh</text><text x="484" y="158" text-anchor="middle">Chọn có xét khoảng cách</text></svg><figcaption>Minh họa khái niệm top_n và ANMS; không phải dữ liệu hay kết quả thí nghiệm.</figcaption></figure><details open class="reference" data-initial-collapse><summary>Công thức, tham số & đủ 11 hợp đồng hàm A</summary><div class="details-body"><p>Nguồn: PDF §3, trang 3–6. Làm Harris trước vì hai biến thể dùng các thành phần của Harris.</p>
+<h4>4.1. Harris: kiến thức cần nắm</h4>
+<p>Hai tỉ lệ có vai trò khác nhau: <code>sigma_d</code> là độ mờ trước đạo hàm, quyết định mức chi tiết; <code>sigma_i</code> là tỉ lệ tích phân, quyết định vùng lấy trung bình các tích đạo hàm.</p>
+<p>Công thức trong PDF:</p>
+<p>&lt;div class=&quot;formula&quot; role=&quot;math&quot; aria-label=&quot;M = σD² · G(σI) ∗ [[Lx², LxLy], [LxLy, Ly²]];  Lx = ∂x(G(σD) ∗ I)&quot;&gt;M = σD² · G(σI) ∗ [[Lx², LxLy], [LxLy, Ly²]];  Lx = ∂x(G(σD) ∗ I)&lt;/div&gt;</p>
+<p>&lt;div class=&quot;formula&quot; role=&quot;math&quot; aria-label=&quot;R = det(M) − k · tr(M)²;  k ∈ [0.04, 0.06]&quot;&gt;R = det(M) − k · tr(M)²;  k ∈ [0.04, 0.06]&lt;/div&gt;</p>
+<p>Điểm góc là cực đại không gian vượt ngưỡng; không phải mọi pixel có R dương đều được giữ. R âm thường ứng với cạnh. Hệ số <code>sigma_d**2</code> nằm trong M, đặc biệt cần khi so nhiều tỉ lệ.</p>
+<h4>4.2. Hợp đồng hàm Harris</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Chữ ký theo PDF</th>
+  <th>Đầu ra / yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>gaussian_blur(img, sigma)</code></td>
+  <td>Ảnh làm mờ; được phép gọi <code>scipy.ndimage.gaussian_filter</code> cho mục đích này</td>
+</tr>
+<tr>
+  <td><code>structure_tensor(img, sigma_i, sigma_d)</code></td>
+  <td><code>(Mxx, Mxy, Myy)</code>, mỗi mảng cùng kích thước ảnh, đã nhân <code>sigma_d**2</code></td>
+</tr>
+<tr>
+  <td><code>harris_response(img, sigma_i, sigma_d, k=0.04)</code></td>
+  <td>Mảng R kiểu float, cùng kích thước ảnh</td>
+</tr>
+<tr>
+  <td><code>nms_2d(response, window=3)</code></td>
+  <td>Mảng bool, cực đại địa phương trong cửa sổ</td>
+</tr>
+<tr>
+  <td><code>harris_classic(img, sigma_i=2.0, sigma_d=1.4, k=0.04, thresh_rel=0.01)</code></td>
+  <td><code>(N, 3)</code>: <code>(row, col, response)</code>, giảm dần theo response; R → NMS → ngưỡng theo <code>max(R)</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Mốc hoàn thành:</strong> nhóm tự viết đủ hàm, giải thích được tham số, qua kiểm chứng bàn cờ trước khi dùng làm nền cho biến thể.</p>
+<h4>4.3. Harris–Laplace</h4>
+<p>Tháp tỉ lệ theo PDF là <code>sigma_n = xi**n * sigma0</code>. Tại mỗi tầng: <code>sigma_i = sigma_n</code>, <code>sigma_d = 0.7 * sigma_n</code>; ứng viên Harris là cực đại không gian vượt ngưỡng.</p>
+<p>Chọn tỉ lệ bằng:</p>
+<p>&lt;div class=&quot;formula&quot; role=&quot;math&quot; aria-label=&quot;|LoG(x; σ)| = σ² · |Lxx(x; σ) + Lyy(x; σ)|&quot;&gt;|LoG(x; σ)| = σ² · |Lxx(x; σ) + Lyy(x; σ)|&lt;/div&gt;</p>
+<p>Giữ ứng viên nếu giá trị này lớn hơn <strong>cả hai tầng kề tại cùng vị trí</strong> và vượt ngưỡng tối thiểu. Chọn tầng có R lớn nhất không đáp ứng yêu cầu. Không có cực trị LoG theo tỉ lệ thì phải loại điểm.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Chữ ký theo PDF</th>
+  <th>Đầu ra / yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>scale_pyramid(sigma0=1.2, xi=1.2, n_levels=10)</code></td>
+  <td>Mảng sigma một chiều</td>
+</tr>
+<tr>
+  <td><code>log_normalized(img, sigma)</code></td>
+  <td>LoG đã chuẩn hóa theo công thức trên</td>
+</tr>
+<tr>
+  <td><code>harris_laplace(img, sigmas, k=0.04, thresh_rel=0.01, log_thresh=0.0)</code></td>
+  <td><code>(N, 4)</code>: <code>(row, col, sigma, response)</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Lý thuyết viết <code>n = 0,...,N</code>, còn hàm dùng <code>n_levels</code>. Nhóm cần ghi rõ số tầng, tránh nhầm với chỉ số cuối. Hai đầu tháp không có đủ hai tầng kề; quy ước xử lý phải phù hợp điều kiện cực trị của đề.</p>
+<p><strong>Mốc hoàn thành:</strong> đầu ra có sigma, thể hiện bước lọc LoG thực sự loại ứng viên; báo cáo repeatability khi phóng 3× cho cả Harris và Harris–Laplace.</p>
+<h4>4.4. ANMS và đường cơ sở</h4>
+<p>ANMS nhận ứng viên Harris một tỉ lệ. Bán kính theo PDF:</p>
+<p>&lt;div class=&quot;formula&quot; role=&quot;math&quot; aria-label=&quot;ri = min ‖xi − xj‖, với fi &amp;lt; c_robust · fj;  ri = ∞ nếu không có j phù hợp&quot;&gt;ri = min ‖xi − xj‖, với fi &amp;lt; c_robust · fj;  ri = ∞ nếu không có j phù hợp&lt;/div&gt;</p>
+<p>Không có điểm mạnh hơn thỏa điều kiện thì bán kính là vô cùng. Với <code>c_robust=0.9</code>, điểm triệt tiêu phải mạnh hơn khoảng 11%. ANMS chọn theo bán kính giảm dần; <code>top_n</code> chọn theo response.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Chữ ký theo PDF</th>
+  <th>Đầu ra / yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>anms(points, n_keep, c_robust=0.9)</code></td>
+  <td><code>(n_keep, 3)</code>, giảm dần theo bán kính; đầu vào <code>(N, 3)</code> từ Harris</td>
+</tr>
+<tr>
+  <td><code>top_n(points, n_keep)</code></td>
+  <td><code>(n_keep, 3)</code>, các điểm mạnh nhất</td>
+</tr>
+</tbody>
+</table></div>
+<p>Giữ cùng tập ứng viên, cùng N và đủ ứng viên cho <code>n_keep</code> khi so sánh. Ghi quy ước khi bán kính bằng nhau hoặc thiếu ứng viên; PDF chưa quy định chi tiết các trường hợp này.</p>
+<p><strong>Mốc hoàn thành:</strong> có hình điểm và hai số <code>grid_occupancy</code> với cùng N. PDF nói hàm độ phủ này “cho sẵn” nhưng không có mã/chữ ký trong tài liệu; tìm bản giảng viên cung cấp hoặc hỏi rõ định nghĩa lưới.</p>
+<h4>4.5. Repeatability và kiểm chứng bắt buộc</h4>
+<p><code>repeatability(pts_a, pts_b, transform, img_shape, eps=3.0)</code> trả giá trị <code>[0,1]</code>. <code>transform</code> ánh xạ <code>(row, col)</code> từ A sang B; chỉ tính điểm có vị trí chiếu nằm trong B (PDF trang 5).</p>
+<p>Ghi rõ kích thước ảnh đích dùng trong phép đo, quy tắc ghép điểm, trường hợp không có điểm hợp lệ và cách biến đổi ảnh. PDF không mô tả hết các chi tiết này. Nhầm ánh xạ quay/resize có thể khiến phép đo phản ánh lỗi tọa độ thay vì bộ phát hiện.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Kiểm chứng PDF</th>
+  <th>Output cần lưu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Bàn cờ tổng hợp</td>
+  <td>Giao điểm trong đã biết, hình điểm phát hiện và sai số; yêu cầu ≤ 1 px</td>
+</tr>
+<tr>
+  <td>Quay 30°</td>
+  <td>Số điểm trước/sau và repeatability, kèm ánh xạ tọa độ</td>
+</tr>
+<tr>
+  <td>Phóng 3×</td>
+  <td>Hai số repeatability cho Harris và Harris–Laplace</td>
+</tr>
+<tr>
+  <td>So <code>cv2.cornerHarris</code></td>
+  <td>Hình đối chiếu và mức khớp trong bán kính 2–3 px; không yêu cầu trùng tuyệt đối</td>
+</tr>
+<tr>
+  <td>ANMS so <code>top_n</code></td>
+  <td>Cùng ứng viên, cùng N, cùng lưới; hai giá trị độ phủ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Đối chiếu OpenCV chỉ ở phần được phép. Ghi tham số và quy ước làm mờ/đạo hàm trước khi giải thích khác biệt. Hoàn thành kiểm chứng có output rồi mới sang thí nghiệm mở.</p>
+<div class="formula" role="math" aria-label="Repeatability theo quy ước notebook">Repeatability = số điểm A chiếu hợp lệ có điểm B cách ≤ eps / số điểm A chiếu hợp lệ<br>Không có điểm hợp lệ → 0.0; cho phép một điểm B khớp nhiều điểm A.</div></div></details><p><strong>Mục tiêu:</strong> giải thích và chứng minh tác dụng của chọn tỉ lệ bằng Harris–Laplace và chọn điểm phân bố theo ANMS. A1 và A2 là hai nhánh độc lập dùng nền Harris chung.</p>
+<h4>Bảng công việc A</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Mã</th>
+  <th>Phụ thuộc / đầu vào</th>
+  <th>Công việc</th>
+  <th>Đầu ra và điều kiện hoàn thành</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A-01</td>
+  <td>Chuẩn bị chung; nguồn ảnh</td>
+  <td>Chọn ảnh; chuẩn bị bàn cờ và các cặp ảnh biến đổi; ghi miền cường độ, ánh xạ tọa độ và cấu hình</td>
+  <td>Danh sách ảnh có nguồn; cấu hình dùng chung; ánh xạ quay/phóng đúng chiều A sang B</td>
+</tr>
+<tr>
+  <td>A-02</td>
+  <td>A-01</td>
+  <td>Rà soát <code>gaussian_blur</code>, <code>structure_tensor</code>, <code>harris_response</code>, <code>nms_2d</code>, <code>harris_classic</code>; giải thích sigma đạo hàm và sigma tích phân</td>
+  <td>Hình điểm Harris; giải thích tensor đã nhân <code>sigma_d**2</code>, NMS và ngưỡng; kiểm chứng bàn cờ đạt trước khi chốt nền chung</td>
+</tr>
+<tr>
+  <td>A-03</td>
+  <td>A-02</td>
+  <td>Nhánh A1: rà soát <code>scale_pyramid</code>, <code>log_normalized</code>, <code>harris_laplace</code>; chọn tỉ lệ bằng cực đại LoG</td>
+  <td>Điểm <code>(row, col, sigma, response)</code>; hình thể hiện sigma; kiểm tra ứng viên chỉ được giữ khi LoG vượt cả hai tầng kề</td>
+</tr>
+<tr>
+  <td>A-04</td>
+  <td>A-02</td>
+  <td>Nhánh A2: rà soát <code>top_n</code> và <code>anms</code> trên cùng ứng viên Harris một tỉ lệ; lấy mã hoặc xác nhận định nghĩa <code>grid_occupancy</code></td>
+  <td>Hai tập điểm cùng N, cùng lưới; nguồn/định nghĩa phép đo độ phủ được ghi rõ trước khi đo</td>
+</tr>
+<tr>
+  <td>A-05</td>
+  <td>A-02, A-03, A-04; hàm <code>repeatability</code></td>
+  <td>Hoàn thành năm kiểm chứng trong bảng dưới</td>
+  <td>Mỗi kiểm chứng có cấu hình, hình, số đo và nhận xét; chỉ chuyển thí nghiệm liên quan khi kiểm chứng đã đạt</td>
+</tr>
+<tr>
+  <td>A-06</td>
+  <td>A-05; hai phiếu thiết kế A1/A2 đã chốt</td>
+  <td>Chạy hai cặp thí nghiệm, quét tham số và giải thích cơ chế</td>
+  <td>Mỗi cặp có ít nhất một phép đo, hình khác biệt, bảng số gốc, đường cong, giải thích và giới hạn</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Điểm cần chốt ở A-04:</strong> đề nhắc <code>grid_occupancy</code> là hàm cho sẵn, nhưng tài liệu hiện có chưa cung cấp mã/chữ ký. Lấy bản giảng viên hoặc xác nhận định nghĩa lưới trước khi công bố số đo; không tự coi một định nghĩa mới là bản chuẩn của đề.</p>
+<h4>Năm kiểm chứng A</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Kiểm chứng</th>
+  <th>Cần làm</th>
+  <th>Bằng chứng cần lưu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Bàn cờ tổng hợp</td>
+  <td>Đối chiếu điểm phát hiện với giao điểm đã biết</td>
+  <td>Hình giao điểm, sai số vị trí và kết luận theo yêu cầu ≤ 1 px</td>
+</tr>
+<tr>
+  <td>Quay 30°</td>
+  <td>Đo repeatability với ánh xạ tọa độ quay chính xác</td>
+  <td>Cặp ảnh, số điểm hợp lệ, repeatability và quy ước ghép</td>
+</tr>
+<tr>
+  <td>Phóng 3×</td>
+  <td>So Harris với Harris–Laplace trên cùng cặp ảnh</td>
+  <td>Hai repeatability, số điểm hợp lệ và hình đối chiếu</td>
+</tr>
+<tr>
+  <td>Đối chiếu OpenCV</td>
+  <td>Dùng hàm dựng sẵn ở phần kiểm chứng, ghi cấu hình khác biệt</td>
+  <td>Hình và mức khớp trong bán kính 2–3 px</td>
+</tr>
+<tr>
+  <td>ANMS và <code>top_n</code></td>
+  <td>Giữ cùng ứng viên, N và định nghĩa lưới</td>
+  <td>Hai hình phân bố điểm và hai giá trị độ phủ</td>
+</tr>
+</tbody>
+</table></div>
+<h4>Thí nghiệm A cần bàn giao</h4>
+<ul>
+<li><strong>A1/Harris:</strong> cùng cặp ảnh, ánh xạ, <code>eps</code> và quy tắc ghép. Hướng quét gợi ý: <code>xi</code>, số tầng hoặc <code>log_thresh</code>; theo dõi repeatability và/hoặc tỷ lệ ứng viên bị loại. Nhóm chọn một trục chính và tập giá trị trước khi chạy.</li>
+<li><strong>ANMS/<code>top_n</code>:</strong> cùng ứng viên Harris một tỉ lệ, cùng N và lưới độ phủ. Hướng quét gợi ý: <code>c_robust</code> trong khoảng 0.5–1.0 hoặc N; giải thích ảnh hưởng của bán kính triệt tiêu đến phân bố điểm.</li>
+</ul>
+<p><strong>Checklist A:</strong></p>
+<ul>
+<li class="check"><label for="check-A-0"><input id="check-A-0" type="checkbox" data-check-group="A"><span>Rà soát đủ 11 hàm và hiểu định dạng đầu ra.</span></label></li>
+<li class="check"><label for="check-A-1"><input id="check-A-1" type="checkbox" data-check-group="A"><span>Đủ năm kiểm chứng với hình và số đo.</span></label></li>
+<li class="check"><label for="check-A-2"><input id="check-A-2" type="checkbox" data-check-group="A"><span>Đủ hai cặp thí nghiệm A1 và A2; mỗi cặp có bảng số, đường cong, cơ chế và giới hạn.</span></label></li>
+<li class="check"><label for="check-A-3"><input id="check-A-3" type="checkbox" data-check-group="A"><span>Kết quả được lưu trong notebook và thư mục kết quả A; ảnh có nguồn.</span></label></li>
+</ul>
+<div class="group-progress" data-progress="A" aria-live="polite"></div></section>
+<section id="phan-b" data-searchable class="part-b"><div class="section-heading"><span class="section-number">B</span><div><p class="eyebrow">50 ĐIỂM · PHÂN VÙNG TỪ HẠT GIỐNG</p><h2>Region Growing và SRG</h2></div></div><p class="lead">Cùng ảnh và seeds, hai cơ chế mở rộng vùng: theo ngưỡng/thứ tự duyệt hoặc theo độ ưu tiên. Theo dõi delta, trung bình vùng và định danh seed.</p><div class="stepper" data-stepper="B"><p class="eyebrow">ĐỐI CHIẾU HAI CƠ CHẾ PHÁT TRIỂN VÙNG</p><p class="step-help">Bấm từng bước để xem đầu vào, cách làm và đầu ra. Dùng phím mũi tên để chuyển bước.</p><div class="flow-map" role="group" aria-label="Sơ đồ các bước phần B"><div class="step-buttons"><button class="step-button" type="button" data-step="b-input" aria-controls="b-input" aria-pressed="false"><span>01</span>Ảnh & seeds</button></div><p class="flow-caption">↓ Cùng ảnh và seeds, hai cơ chế phát triển vùng ↓</p><div class="branch-grid"><div class="branch-lane"><p class="eyebrow">REGION GROWING</p><div class="step-buttons"><button class="step-button" type="button" data-step="b-classic" aria-controls="b-classic" aria-pressed="false"><span>RG</span>Stack / queue</button></div></div><div class="branch-lane"><p class="eyebrow">SEEDED REGION GROWING</p><div class="step-buttons"><button class="step-button" type="button" data-step="b-frontier" aria-controls="b-frontier" aria-pressed="false"><span>SRG</span>Frontier & heap</button><button class="step-button" type="button" data-step="b-stale" aria-controls="b-stale" aria-pressed="false"><span>SRG</span>Delta & phá hòa</button><button class="step-button" type="button" data-step="b-assign" aria-controls="b-assign" aria-pressed="false"><span>SRG</span>Gán & cập nhật</button></div></div></div><p class="flow-caption">↓ Bộ máy SRG đã qua kiểm chứng ↓</p><div class="step-buttons"><button class="step-button" type="button" data-step="b-frames" aria-controls="b-frames" aria-pressed="false"><span>02</span>Tiến trình & độ nhạy</button></div></div><div class="step-panels"><article class="step-panel" id="b-input" tabindex="-1"><h3>01 · Ảnh & seeds</h3><dl><div><dt>Đầu vào</dt><dd>Ảnh xám float64, seeds nguyên (row, col).</dd></div><div><dt>Cách làm</dt><dd>Kiểm tra seeds không rỗng, không trùng và nằm trong ảnh; gán nhãn theo thứ tự seeds. Lân cận 4: trên, trái, phải, dưới; 8 bổ sung các đường chéo.</dd></div><div><dt>Đầu ra</dt><dd>Ảnh, seeds và định danh vùng được dùng chung.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>So mã nhãn trực tiếp sau khi đảo seeds mà chưa căn chỉnh định danh.</dd></div></dl></article><article class="step-panel" id="b-classic" tabindex="-1"><h3>RG · Stack / queue</h3><dl><div><dt>Đầu vào</dt><dd>Ảnh, seeds, ngưỡng T và order.</dd></div><div><dt>Cách làm</dt><dd>Khởi tạo mọi seed; xử lý từng vùng theo thứ tự seeds. Lấy pixel từ stack LIFO hoặc queue FIFO, nhận khi |I(p)−μr| ≤ T và cập nhật trung bình ngay.</dd></div><div><dt>Đầu ra</dt><dd>Ảnh nhãn int32; pixel không nhận giữ −1.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Coi −1 là một vùng hợp lệ; dùng T khác đơn vị ảnh; bỏ qua ảnh hưởng thứ tự duyệt.</dd></div></dl></article><article class="step-panel" id="b-frontier" tabindex="-1"><h3>SRG · Frontier & heap</h3><dl><div><dt>Đầu vào</dt><dd>Các seed có nhãn và các pixel chưa gán kề vùng.</dd></div><div><dt>Cách làm</dt><dd>Với mỗi ứng viên, chọn vùng kề có delta nhỏ nhất rồi đưa khóa ưu tiên vào heap. Lưu thứ tự chèn/ưu tiên phá hòa; loại các entry đã bị thay thế.</dd></div><div><dt>Đầu ra</dt><dd>Heap các ứng viên frontier, chưa cần ngưỡng T.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Nhầm SRG với Region Growing có hàng đợi ưu tiên nhưng vẫn lọc theo T.</dd></div></dl></article><article class="step-panel" id="b-stale" tabindex="-1"><h3>SRG · Delta & phá hòa</h3><dl><div><dt>Đầu vào</dt><dd>Ứng viên pop khỏi heap và vùng kề hiện tại.</dd></div><div><dt>Cách làm</dt><dd>lazy: tính lại delta theo trung bình vùng hiện tại, đưa lại heap nếu delta/vùng thắng đổi. frozen: tham chiếu cường độ seed. Phá hòa insertion/raster/random phải nhất quán.</dd></div><div><dt>Đầu ra</dt><dd>Ứng viên được xác nhận theo quy ước đã chọn.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Gọi frozen là trung bình vùng bị cũ; random không cố định RNG seed. Heap lazy hiện có không quét lại toàn bộ frontier mỗi lần trung bình đổi.</dd></div></dl></article><article class="step-panel" id="b-assign" tabindex="-1"><h3>SRG · Gán & cập nhật</h3><dl><div><dt>Đầu vào</dt><dd>Ứng viên có khóa hợp lệ và vùng thắng.</dd></div><div><dt>Cách làm</dt><dd>Gán pixel, cập nhật tổng/số lượng vùng và frontier; lặp đến hết heap. Ghi boundary_mask khi pixel kề nhiều vùng tại lúc gán; pixel biên vẫn có nhãn.</dd></div><div><dt>Đầu ra</dt><dd>(labels, boundary_mask); mọi labels ≥ 0.</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Dùng boundary_mask như ảnh nhãn hoặc nghĩ nó luôn trùng đường biên hình học ở kết quả cuối.</dd></div></dl></article><article class="step-panel" id="b-frames" tabindex="-1"><h3>02 · Tiến trình & độ nhạy</h3><dl><div><dt>Đầu vào</dt><dd>Bộ máy SRG đã kiểm chứng; n_frames, jitter và n_trials.</dd></div><div><dt>Cách làm</dt><dd>Chụp các bản sao nhãn theo số pixel đã gán. Dịch seeds hợp lệ, tránh trùng; phân vùng lại, căn chỉnh mã theo seed rồi đếm tần suất đổi so với gốc.</dd></div><div><dt>Đầu ra</dt><dd>Đúng n_frames ảnh độc lập; sensitivity float trong [0,1].</dd></div><div class="pitfall"><dt>Chú ý</dt><dd>Các frame cùng tham chiếu mảng cuối; nhầm đổi mã nhãn thành đổi vùng. Với n_frames=1 chỉ lấy frame cuối.</dd></div></dl></article></div></div><div class="formula" role="math" aria-label="Điều kiện nhận pixel và cập nhật trung bình">Region Growing: |I(p) − μr| ≤ T<br>μr mới = (nr · μr + I(p)) / (nr + 1)</div><div class="formula" role="math" aria-label="Delta trong SRG">SRG lazy: δ(p,r) = |I(p) − μr hiện tại|<br>SRG frozen: δ(p,r) = |I(p) − I(seedr)|</div><div class="formula" role="math" aria-label="Bản đồ độ nhạy seed">Sensitivity(p) = số trial đổi định danh vùng tại p / n_trials</div><details open class="reference" data-initial-collapse><summary>Tham số, quy ước & đủ 4 hợp đồng hàm B</summary><div class="details-body"><p>Nguồn: PDF §4, trang 6–8. Nhóm tự viết thuật toán và hàm hỗ trợ thuộc phần cài đặt.</p>
+<h4>5.1. Region Growing cổ điển</h4>
+<p>Đề mô tả phát triển từ seed, xét lân cận 4, nhận pixel khi độ lệch cường độ so với trung bình vùng không vượt T. Trung bình thay đổi theo pixel được nhận, vì vậy thứ tự xử lý có thể làm đổi kết quả.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Chữ ký theo PDF</th>
+  <th>Đầu ra / yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>region_growing_classic(img, seeds, T, order=&quot;stack&quot;)</code></td>
+  <td>Nhãn <code>int32</code>; <code>-1</code> cho pixel chưa thuộc vùng; hỗ trợ <code>stack</code> (LIFO), <code>queue</code> (FIFO)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ghi cách biểu diễn seeds, thứ tự lân cận, thứ tự xử lý nhiều seeds và thang cường độ của T. Giữ cố định các lựa chọn này khi chỉ khảo sát một yếu tố.</p>
+<h4>5.2. SRG</h4>
+<p>Các vùng phát triển đồng thời. Độ ưu tiên của pixel biên chưa có nhãn là độ lệch so với trung bình vùng kề; nếu kề nhiều vùng, chọn vùng cho độ lệch nhỏ nhất và đánh dấu pixel biên theo mô tả PDF. Ưu tiên độ lệch nhỏ nhất toàn cục; không dùng ngưỡng T như Region Growing.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Chữ ký theo PDF</th>
+  <th>Đầu ra / yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>srg(img, seeds, connectivity=4, stale=&quot;lazy&quot;, tie=&quot;insertion&quot;)</code></td>
+  <td><code>(labels, boundary_mask)</code>; mọi nhãn ≥ 0; dùng <code>heapq</code></td>
+</tr>
+<tr>
+  <td><code>srg_step_frames(img, seeds, n_frames=8, **kwargs)</code></td>
+  <td>Danh sách <code>n_frames</code> ảnh nhãn tại các mốc tiến trình</td>
+</tr>
+<tr>
+  <td><code>seed_sensitivity(img, seeds, segment_fn, n_trials=20, jitter=3)</code></td>
+  <td>Bản đồ tần suất đổi nhãn khi dịch seeds trong khoảng ±jitter pixel</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pixel biên vẫn phải được gán nhãn cuối cùng. Ghi rõ ngữ nghĩa <code>boundary_mask</code> để hình trực quan khớp điều được đo.</p>
+<h4>5.3. Hai chi tiết được chấm riêng</h4>
+<p><strong>Giá trị delta cũ:</strong></p>
+<ul>
+<li><code>lazy</code>: theo PDF, khi pop phải tính lại delta; nếu khác giá trị lưu thì đưa lại hàng đợi. Giá trị tham chiếu là trung bình vùng hiện tại.</li>
+<li><code>frozen</code>: delta theo cường độ hạt giống, không theo trung bình vùng đang thay đổi.</li>
+</ul>
+<p>Cài cả hai và so sánh. PDF gợi ý ảnh gradient mượt; nhóm tự quyết định ảnh, phép đo và kết luận. Khi giải thích cần chỉ ra giá trị tham chiếu của delta và khả năng thích nghi với chuyển màu.</p>
+<p><strong>Phá hòa:</strong> chữ ký nêu <code>insertion</code>, <code>raster</code>, <code>random</code>. Quy tắc phải tái lập; nếu dùng <code>random</code>, cố định và ghi seed ngẫu nhiên. Cần ít nhất một ảnh mà đổi quy tắc làm đổi phân vùng. Ảnh hằng số với hai seeds là kiểm chứng bắt buộc vì mọi delta bằng nhau.</p>
+<h4>5.4. Kiểm chứng bắt buộc</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Kiểm chứng PDF</th>
+  <th>Output cần lưu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Phân hoạch đầy đủ</td>
+  <td>Điều kiện <code>(labels &gt;= 0).all()</code></td>
+</tr>
+<tr>
+  <td>Bảo toàn số vùng</td>
+  <td>Số nhãn phân biệt bằng số hạt giống hợp lệ, không trùng</td>
+</tr>
+<tr>
+  <td>Đảo thứ tự seeds</td>
+  <td>Hai hình và số pixel khác sau khi đối chiếu cùng định danh vùng</td>
+</tr>
+<tr>
+  <td>Stack / queue / SRG</td>
+  <td>Hình và số pixel khác nhau cho từng cặp</td>
+</tr>
+<tr>
+  <td>Ảnh phẳng, hai seeds</td>
+  <td>Hình dạng vùng, quy tắc phá hòa và nhận xét</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Căn chỉnh nhãn:</strong> đảo danh sách seeds có thể đổi mã nhãn dù hình phân vùng giống nhau. Quy nhãn về cùng hạt giống trước khi đếm pixel khác biệt; giữ định danh nhất quán cả trong <code>seed_sensitivity</code>. Nếu đảo seeds làm thay đổi thứ tự chèn khi có ties, cần báo rõ ảnh hưởng, không tuyên bố bất biến tuyệt đối.</p>
+<p>Với seed jitter, ghi cách xử lý ra ngoài ảnh, trùng seed hoặc rơi sang cấu trúc khác; bản đồ là số lần đổi hay tỉ lệ, so với lần chạy gốc nào. Với frames, các mốc cần là bản chụp độc lập, không cùng tham chiếu tới trạng thái cuối.</p>
+<p><strong>Mốc hoàn thành:</strong> đủ kiểm chứng, hai chế độ stale, phá hòa tái lập và hình tiến trình.</p>
+</div></details><p><strong>Mục tiêu:</strong> đối chiếu phát triển vùng theo ngưỡng/thứ tự duyệt với phát triển đồng thời theo độ ưu tiên; làm rõ ảnh hưởng trung bình vùng, delta cũ, phá hòa và vị trí seeds.</p>
+<h4>Bảng công việc B</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Mã</th>
+  <th>Phụ thuộc / đầu vào</th>
+  <th>Công việc</th>
+  <th>Đầu ra và điều kiện hoàn thành</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>B-01</td>
+  <td>Chuẩn bị chung; nguồn ảnh</td>
+  <td>Chọn ảnh, seeds hợp lệ; ghi định danh vùng, thứ tự lân cận, miền cường độ và T</td>
+  <td>Ảnh và danh sách seeds tái lập; cùng một cấu hình đầu vào cho các phương pháp</td>
+</tr>
+<tr>
+  <td>B-02</td>
+  <td>B-01</td>
+  <td>Rà soát <code>region_growing_classic</code>: stack/queue, ngưỡng so với trung bình và cập nhật vùng</td>
+  <td>Hai ảnh nhãn, thể hiện <code>-1</code> bằng màu riêng; giải thích thứ tự duyệt có thể làm đổi kết quả</td>
+</tr>
+<tr>
+  <td>B-03</td>
+  <td>B-01</td>
+  <td>Rà soát <code>srg</code>: heap, chọn vùng, delta, cập nhật và mặt nạ biên; kiểm tra lazy/frozen và ba cách phá hòa</td>
+  <td>Nhãn <code>int32</code> đầy đủ, biên bool; mô tả rõ cường độ seed so với trung bình vùng và quy tắc phá hòa</td>
+</tr>
+<tr>
+  <td>B-04</td>
+  <td>B-02, B-03</td>
+  <td>Hoàn thành năm kiểm chứng dưới đây; đối chiếu lazy/frozen và insertion/raster/random</td>
+  <td>Hình, số pixel khác sau căn chỉnh nhãn; ít nhất một ảnh cho thấy đổi phá hòa làm đổi phân vùng</td>
+</tr>
+<tr>
+  <td>B-05</td>
+  <td>B-04</td>
+  <td>Dùng <code>srg_step_frames</code> và <code>seed_sensitivity</code>; ghi các mốc và quy tắc dịch seeds</td>
+  <td>Chuỗi frame độc lập, frame cuối khớp SRG; bản đồ tần suất đổi vùng trong [0,1], có cấu hình và RNG seed</td>
+</tr>
+<tr>
+  <td>B-06</td>
+  <td>B-04, B-05; phiếu thiết kế B đã chốt</td>
+  <td>So SRG với Region Growing, quét tham số, giải thích và tổng hợp</td>
+  <td>Hình khác biệt, bảng số gốc, đường cong, cơ chế và giới hạn; có phần so lazy/frozen và phá hòa</td>
+</tr>
+</tbody>
+</table></div>
+<h4>Năm kiểm chứng B</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Kiểm chứng</th>
+  <th>Cần làm</th>
+  <th>Bằng chứng cần lưu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Phân hoạch đầy đủ</td>
+  <td>Kiểm tra mọi pixel SRG được gán nhãn, kể cả pixel biên</td>
+  <td>Số pixel chưa gán bằng 0 và hình nhãn</td>
+</tr>
+<tr>
+  <td>Bảo toàn số vùng</td>
+  <td>So số nhãn với số seeds hợp lệ, không trùng</td>
+  <td>Hai số bằng nhau; seed giữ đúng vùng</td>
+</tr>
+<tr>
+  <td>Đảo thứ tự seeds</td>
+  <td>Chạy lại và căn chỉnh nhãn theo cùng định danh seed</td>
+  <td>Hai hình và số pixel thực sự đổi vùng; giải thích ảnh hưởng của thứ tự chèn nếu có</td>
+</tr>
+<tr>
+  <td>Stack / queue / SRG</td>
+  <td>Dùng cùng ảnh và seeds, ghi T cho phương pháp cổ điển</td>
+  <td>Các hình và số pixel khác từng cặp, thể hiện riêng pixel chưa gán</td>
+</tr>
+<tr>
+  <td>Ảnh phẳng, hai seeds</td>
+  <td>So insertion/raster/random; cố định RNG seed khi dùng random</td>
+  <td>Hình dạng vùng và số pixel thay đổi; có ít nhất một trường hợp phân vùng khác khi đổi quy tắc</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Căn chỉnh nhãn:</strong> cùng một vùng đổi từ mã 0 sang mã 1 chưa phải đổi phân vùng. Quy mã về cùng seed trước khi đếm pixel khác và khi tính sensitivity. Pixel chưa gán của Region Growing vẫn là một trạng thái riêng.</p>
+<p><strong>Frames và sensitivity:</strong> ghi số frame/mốc tiến trình; số trial, jitter, RNG seed, cách tránh seeds ngoài ảnh/trùng nhau và cách chuẩn hóa nhãn. Đọc docstring hiện có trước khi dùng; bản đồ sensitivity là tần suất đổi so với phân vùng gốc, không phải nhãn vùng mới.</p>
+<h4>Thí nghiệm B cần bàn giao</h4>
+<p>Giữ cùng ảnh và seeds khi so SRG với Region Growing. Hướng quét gợi ý: T, số/vị trí seeds hoặc connectivity 4/8 cho SRG. Chọn phép đo phù hợp, chẳng hạn tỷ lệ pixel được gán, tỷ lệ diện tích vùng lớn nhất hoặc seed sensitivity; ghi rõ mẫu số và xử lý <code>-1</code>. Không so số vùng trên cùng seeds như đại lượng chính nếu nó luôn được cố định bởi cách khởi tạo. Bố trí riêng đối chiếu lazy/frozen và phá hòa, kể cả khi trục quét chính là T.</p>
+<p><strong>Checklist B:</strong></p>
+<ul>
+<li class="check"><label for="check-B-0"><input id="check-B-0" type="checkbox" data-check-group="B"><span>Rà soát đủ bốn hàm, bảo toàn định danh seed và hiểu mặt nạ biên.</span></label></li>
+<li class="check"><label for="check-B-1"><input id="check-B-1" type="checkbox" data-check-group="B"><span>Đủ năm kiểm chứng và bằng chứng khác biệt lazy/frozen, phá hòa.</span></label></li>
+<li class="check"><label for="check-B-2"><input id="check-B-2" type="checkbox" data-check-group="B"><span>Có chuỗi tiến trình và bản đồ seed sensitivity tái lập.</span></label></li>
+<li class="check"><label for="check-B-3"><input id="check-B-3" type="checkbox" data-check-group="B"><span>Cặp SRG/Region Growing có bảng số, đường cong, cơ chế và giới hạn.</span></label></li>
+<li class="check"><label for="check-B-4"><input id="check-B-4" type="checkbox" data-check-group="B"><span>Kết quả được lưu trong notebook và thư mục kết quả B; ảnh có nguồn.</span></label></li>
+</ul>
+<div class="group-progress" data-progress="B" aria-live="polite"></div></section>
+<section id="thi-nghiem" data-searchable><div class="section-heading"><span class="section-number">03</span><div><p class="eyebrow">TỪ CÂU HỎI ĐẾN BẰNG CHỨNG</p><h2>Thiết kế thí nghiệm</h2></div></div><p>Điền riêng một phiếu cho mỗi cặp <strong>Harris–Laplace/Harris</strong>, <strong>ANMS/<code>top_n</code></strong>, <strong>SRG/Region Growing</strong> trong notebook tương ứng. Các hướng quét ở trên là gợi ý; nhóm chốt lựa chọn trước khi chạy và không dùng dự đoán làm kết quả đo.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Trường cần chốt</th>
+  <th>Nội dung nhóm điền</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Câu hỏi và giả thuyết</td>
+  <td>Hiện tượng muốn khảo sát và dự đoán cơ chế</td>
+</tr>
+<tr>
+  <td>Ảnh và nguồn</td>
+  <td>Ảnh nào, lý do chọn, biến đổi/chỉnh sửa, kích thước, miền cường độ</td>
+</tr>
+<tr>
+  <td>Biến quét</td>
+  <td>Một trục chính, tập giá trị đủ để vẽ xu hướng hoặc điểm chuyển hành vi</td>
+</tr>
+<tr>
+  <td>Yếu tố cố định</td>
+  <td>Tiền xử lý, các tham số khác, seeds, ánh xạ, phép ghép/đếm</td>
+</tr>
+<tr>
+  <td>Phép đo</td>
+  <td>Công thức, đơn vị, mẫu số, quy tắc nhãn/điểm hợp lệ và trường hợp rỗng</td>
+</tr>
+<tr>
+  <td>Tái lập</td>
+  <td>RNG seed, số lần lặp và cách tổng hợp khi có ngẫu nhiên</td>
+</tr>
+<tr>
+  <td>Bằng chứng</td>
+  <td>Hình đối chiếu, bảng số từng lần chạy, đường cong có tên trục/đơn vị/chú giải</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sau khi chạy, mỗi cặp trình bày: <strong>câu hỏi → cấu hình → hình/bảng/đường cong → giải thích → giới hạn</strong>. Trả lời cụ thể đại lượng nào đổi, ở bước tính nào và vì sao gây ra hiện tượng quan sát. Báo cả trường hợp không khớp giả thuyết.</p>
+<p>Theo <a href="../../agents/rules/RESULTS_REPORTING.md">quy tắc báo cáo</a>, mỗi số đo cần đủ ngữ cảnh: đại lượng/đơn vị, câu hỏi, thời điểm/lần chạy, ảnh và vị trí kết quả, cấu hình/người thực hiện, cách tính/tham số/lặp. Việc ghi người thực hiện tham chiếu <a href="../../README.md#nhom-va-phan-cong">phân công chung</a>.</p>
+<details open class="reference" data-initial-collapse><summary>Hướng quét, so sánh công bằng & cách lưu số đo</summary><div class="details-body"><p>Nguồn: PDF §5.1, trang 8. Cần đủ <strong>ba cặp</strong>, không chỉ hai phần A và B.</p>
+<h4>6.1. Phiếu thiết kế do nhóm tự điền</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Trường</th>
+  <th>Quyết định cần ghi trước khi chạy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Câu hỏi</td>
+  <td>Khác biệt cụ thể nào cần kiểm tra?</td>
+</tr>
+<tr>
+  <td>Giả thuyết</td>
+  <td>Dự đoán hiện tượng và bước thuật toán gây ra</td>
+</tr>
+<tr>
+  <td>Dữ liệu</td>
+  <td>Nguồn, kích thước, lý do chọn, chỉnh sửa</td>
+</tr>
+<tr>
+  <td>Biến độc lập</td>
+  <td>Yếu tố thay đổi và tập giá trị quét</td>
+</tr>
+<tr>
+  <td>Yếu tố cố định</td>
+  <td>Tiền xử lý, seed ngẫu nhiên, tham số khác, quy tắc ghép/đếm</td>
+</tr>
+<tr>
+  <td>Phép đo</td>
+  <td>Định nghĩa, đơn vị, mẫu số, cách tổng hợp</td>
+</tr>
+<tr>
+  <td>Bằng chứng</td>
+  <td>Hình, bảng số và đường cong sẽ lưu</td>
+</tr>
+</tbody>
+</table></div>
+<p>Chỉ sau khi nhóm quyết định các mục này mới dùng AI trong phạm vi đề cho phép để dựng khung/biểu đồ, kèm prompt nguyên văn. Không biến dự đoán thành kết quả đo.</p>
+<h4>6.2. Hướng gợi ý được PDF nêu</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Cặp</th>
+  <th>Hướng quét trong đề</th>
+  <th>Đại lượng theo gợi ý đề</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A1 so Harris</td>
+  <td><code>xi</code>, số tầng; tỉ lệ <code>sigma_d/sigma_i</code>; <code>log_thresh</code></td>
+  <td>Repeatability; tỉ lệ ứng viên bị loại</td>
+</tr>
+<tr>
+  <td>A2 so Harris + <code>top_n</code></td>
+  <td><code>c_robust</code> từ 0.5 đến 1.0; số điểm N</td>
+  <td>Độ phủ lưới của hai cách chọn</td>
+</tr>
+<tr>
+  <td>SRG so Region Growing</td>
+  <td>T; số/vị trí seeds; liên thông 4/8</td>
+  <td>Diện tích vùng lớn nhất, số vùng, seed sensitivity</td>
+</tr>
+</tbody>
+</table></div>
+<p>Không bắt buộc dùng tất cả gợi ý. So <code>lazy</code>/<code>frozen</code> và ảnh hưởng phá hòa vẫn phải được bố trí rõ ở phần B, kể cả khi chọn trục quét chính khác.</p>
+<h4>6.3. Phép quét đạt yêu cầu</h4>
+<ol>
+<li>Giữ cố định các yếu tố ngoài trục đang xét; nếu đổi nhiều yếu tố, tách nhóm so sánh và ghi rõ.</li>
+<li>Lấy đủ điểm để nhìn thấy xu hướng, bão hòa hoặc thay đổi hành vi; ba ảnh với ba tham số không thay thế đường cong.</li>
+<li>Lưu cấu hình và số đo từng lần, không chỉ cấu hình tốt nhất.</li>
+<li>Vẽ trục có tên, đơn vị, chú giải; giữ bảng số gốc.</li>
+<li>Nếu có ngẫu nhiên, ghi seed và cách lặp/tổng hợp.</li>
+<li>Giải thích bằng bước tính thay đổi; báo cáo trung thực khi kết quả khác dự đoán.</li>
+</ol>
+<h4>6.4. So sánh công bằng</h4>
+<ul>
+<li>A1/Harris: cùng cặp ảnh biến đổi, phép ghép, eps; báo cả số điểm hợp lệ để hiểu đúng repeatability.</li>
+<li>ANMS/<code>top_n</code>: cùng ứng viên, cùng N, cùng lưới độ phủ.</li>
+<li>SRG/Region Growing: cùng ảnh và seeds; thể hiện cả pixel chưa gán nhãn của phương pháp cổ điển.</li>
+<li>Đếm pixel khác nhau: căn chỉnh định danh vùng và giữ quy ước đó qua các lần chạy.</li>
+<li>Thời gian: ghi thiết bị, kích thước ảnh, số lần đo, phần công việc được tính; không trộn thời gian đọc/vẽ ảnh vào riêng một phương pháp.</li>
+</ul>
+<p><strong>Đầu ra:</strong> mỗi cặp có bằng chứng khác biệt, ít nhất một phép đo, quét tham số có đường cong và giải thích nối với cơ chế.</p>
+</div></details><details open class="reference" data-initial-collapse><summary>Cách viết báo cáo và giải thích kết quả</summary><div class="details-body"><p>Mỗi thí nghiệm trình bày theo thứ tự: câu hỏi → lý do chọn dữ liệu → cấu hình → hình/bảng/đường cong → giải thích → giới hạn. Đây là cách tổ chức, không phải nội dung kết luận để chép.</p>
+<p>Theo <a href="../../agents/rules/RESULTS_REPORTING.md">quy tắc báo cáo</a>, mỗi con số cần ngữ cảnh:</p>
+<ul>
+<li><strong>What:</strong> đại lượng, đơn vị, giá trị thực thu được.</li>
+<li><strong>Why:</strong> câu hỏi phép đo trả lời.</li>
+<li><strong>When:</strong> thời điểm/lần chạy tạo kết quả.</li>
+<li><strong>Where:</strong> ảnh, biến đổi, môi trường, vị trí output trong notebook.</li>
+<li><strong>Who:</strong> cấu hình thuật toán và nhóm thực hiện.</li>
+<li><strong>How:</strong> tham số, định nghĩa metric, số lần chạy, cách tổng hợp.</li>
+</ul>
+<p>Phần giải thích trả lời ba câu của đề: <strong>đại lượng nào tính khác, khác ở bước nào, vì sao tạo ra hiện tượng đó</strong>. Nêu phạm vi dữ liệu và trường hợp không thấy lợi ích; không chỉ viết “biến thể tốt hơn”. Không đưa số minh họa vào bảng kết quả thật hoặc nói đã qua kiểm chứng khi chưa chạy.</p>
+<p>Theo <a href="../../README.md#7-thang-%C4%91i%E1%BB%83m">bảng điểm</a>, A 50 điểm, B 50 điểm. Tổng các hàng thí nghiệm là 34 điểm; cài đặt và kiểm chứng là 66 điểm, cần hoàn thành đủ cả hai nhóm công việc.</p>
+</div></details></section>
+<section id="loi-thuong-gap" data-searchable><div class="section-heading"><span class="section-number">?</span><div><p class="eyebrow">KHI KẾT QUẢ CHƯA HỢP LÝ</p><h2>Tra cứu lỗi thường gặp</h2></div></div><div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>Hiện tượng</th>
+  <th>Kiểm tra trước</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Góc Harris quá nhiều hoặc quá ít</td>
+  <td>Miền cường độ, sigma_d/sigma_i, k, thresh_rel, NMS và vùng biên</td>
+</tr>
+<tr>
+  <td>Harris–Laplace không ra điểm</td>
+  <td>Dải sigma có phủ cấu trúc ảnh không; đủ ba tầng; LoG chuẩn hóa và cực trị nghiêm ngặt; log_thresh</td>
+</tr>
+<tr>
+  <td>Repeatability thấp bất thường</td>
+  <td>Chiều A→B, thứ tự row/col, tâm quay, quy ước resize và số điểm chiếu hợp lệ</td>
+</tr>
+<tr>
+  <td>ANMS chưa phủ đều hơn</td>
+  <td>Cùng ứng viên và N chưa; c_robust; cách xử lý bán kính vô cùng; định nghĩa lưới</td>
+</tr>
+<tr>
+  <td>SRG còn pixel −1 hoặc mất seed</td>
+  <td>Khởi tạo seeds, cập nhật frontier, version heap và điều kiện kết thúc</td>
+</tr>
+<tr>
+  <td>Đảo seeds làm đổi toàn bộ màu</td>
+  <td>Căn chỉnh mã nhãn theo định danh seed trước khi đo</td>
+</tr>
+<tr>
+  <td>Frames đều giống nhau</td>
+  <td>Dùng bản sao độc lập, đúng mốc và kiểm tra frame cuối</td>
+</tr>
+<tr>
+  <td>Sensitivity cao hoặc không tái lập</td>
+  <td>Cách dịch/né trùng seeds, chuẩn hóa nhãn, RNG seed và tính ngẫu nhiên trong segment_fn</td>
+</tr>
+<tr>
+  <td>Chạy lẻ được, Run All lỗi</td>
+  <td>Thứ tự định nghĩa, kernel, biến cũ trong bộ nhớ và đường dẫn ảnh</td>
+</tr>
+</tbody>
+</table></div>
+<p class="notice">Điểm cần xác nhận: <code>grid_occupancy</code> được đề nhắc là cho sẵn nhưng chưa có mã/chữ ký trong tài liệu hiện tại. Lấy bản giảng viên hoặc xác nhận định nghĩa trước khi công bố độ phủ.</p></section>
+<section id="nghiem-thu" data-searchable><div class="section-heading"><span class="section-number">✓</span><div><p class="eyebrow">BÀN GIAO CÓ THỂ CHẠY LẠI</p><h2>Nghiệm thu & đóng gói</h2></div></div><ol>
+<li><p><strong>Rà soát chéo:</strong> người phụ trách A kiểm tra lại cấu hình và bằng chứng B; người phụ trách B kiểm tra lại A. Nếu nhóm chỉ có một người, dùng cùng checklist để tự rà soát sau khi chạy sạch.</p>
+</li>
+<li><p><strong>Chạy kiểm tra tự động:</strong> từ thư mục gốc, chạy các lệnh dưới đây. Các kiểm tra này hỗ trợ phát hiện lỗi, không thay các kiểm chứng có output trong notebook.</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m pip check
+</code></pre>
+</li>
+<li><p><strong>Ghép bài:</strong> ghép nội dung A/B thành một notebook, giữ định nghĩa trước nơi gọi, giữ tên hàm và thứ tự dữ liệu; kiểm tra không xung đột import/hàm hỗ trợ.</p>
+</li>
+<li><p><strong>Kiểm tra đường dẫn:</strong> dùng đường dẫn tương đối theo vị trí notebook cuối, kèm đủ ảnh đầu vào. Đề hiện ghi tên notebook <code>bt1_&lt;Nhom&gt;.ipynb</code>; nhóm xác nhận với giảng viên nếu cần đổi tên.</p>
+</li>
+<li><p><strong>Chạy sạch:</strong> Restart &amp; Run All toàn bộ notebook đã ghép; kiểm tra không traceback, đủ hình/bảng/kết luận rồi lưu cả output.</p>
+</li>
+<li><p><strong>Thử gói nộp:</strong> sao chép notebook và ảnh sang thư mục khác, kiểm tra các tài nguyên và khả năng chạy lại. Đối chiếu <a href="HUONG_DAN_THUC_HIEN.md#8-ki%E1%BB%83m-tra-cu%E1%BB%91i-v%C3%A0-n%E1%BB%99p-b%C3%A0i">checklist nộp bài trong hướng dẫn</a>, gồm các quy định của đề về thư viện và sử dụng AI.</p>
+</li>
+</ol>
+<p><strong>Điều kiện hoàn thành toàn bài:</strong></p>
+<ul>
+<li class="check"><label for="check-C-0"><input id="check-C-0" type="checkbox" data-check-group="C"><span>Đủ 11 hàm A và 4 hàm B đúng chữ ký, hiểu và kiểm tra được cách hoạt động.</span></label></li>
+<li class="check"><label for="check-C-1"><input id="check-C-1" type="checkbox" data-check-group="C"><span>Đủ năm kiểm chứng A và năm kiểm chứng B có hình/số đo thực tế.</span></label></li>
+<li class="check"><label for="check-C-2"><input id="check-C-2" type="checkbox" data-check-group="C"><span>Đủ ba cặp thí nghiệm, mỗi cặp có bằng chứng, bảng số gốc, đường cong, cơ chế và giới hạn.</span></label></li>
+<li class="check"><label for="check-C-3"><input id="check-C-3" type="checkbox" data-check-group="C"><span>Có lazy/frozen, phá hòa, frames và seed sensitivity.</span></label></li>
+<li class="check"><label for="check-C-4"><input id="check-C-4" type="checkbox" data-check-group="C"><span>Thông tin nhóm/phân công đã điền trong README; môi trường và nguồn ảnh đầy đủ.</span></label></li>
+<li class="check"><label for="check-C-5"><input id="check-C-5" type="checkbox" data-check-group="C"><span>Một notebook cuối chạy sạch, đã lưu output, ảnh đi kèm và đường dẫn tương đối hoạt động.</span></label></li>
+</ul>
+<details open class="reference" data-initial-collapse><summary>Checklist nộp bài và quy định trong đề</summary><div class="details-body"><h4>8.1. Chạy sạch</h4>
+<ol>
+<li>Lưu notebook và ảnh cần dùng.</li>
+<li>Restart kernel rồi Run All từ cell đầu; không chạy bù thủ công để che phụ thuộc thứ tự.</li>
+<li>Chờ chạy xong; kiểm tra không traceback và đủ hình/bảng/output.</li>
+<li>Lưu notebook sau khi chạy, không xóa output trước khi nộp.</li>
+<li>Thử mở bản sao gói bài ở thư mục khác và chạy lại để kiểm tra đường dẫn tương đối, tài nguyên đi kèm.</li>
+</ol>
+<h4>8.2. Checklist</h4>
+<ul>
+<li>[ ] Thông tin nhóm, môi trường và nguồn ảnh đầy đủ.</li>
+<li>[ ] Đủ 11 hàm A, 4 hàm B; giữ chữ ký theo PDF.</li>
+<li>[ ] Đủ năm kiểm chứng A và năm kiểm chứng B, có output.</li>
+<li>[ ] Có <code>lazy</code> và <code>frozen</code>, cùng bằng chứng so sánh.</li>
+<li>[ ] Phá hòa tái lập và một ảnh cho thấy đổi quy tắc làm đổi kết quả.</li>
+<li>[ ] Đủ ba cặp: bằng chứng, phép đo, đường cong quét, giải thích cơ chế.</li>
+<li>[ ] Prompt nguyên văn ngay trên từng cell dùng AI; không dùng AI trong cài đặt.</li>
+<li>[ ] Hàm góc/phân vùng dựng sẵn chỉ dùng ở phần đối chiếu được phép.</li>
+<li>[ ] Đã kiểm tra tên <code>bt1_&lt;Nhom&gt;.ipynb</code> với giảng viên nếu còn nghi vấn.</li>
+<li>[ ] Đúng một notebook và thư mục <code>images/</code> đủ ảnh; không phụ thuộc đường dẫn cá nhân.</li>
+</ul>
+<p>README và hướng dẫn không thay notebook bắt buộc. PDF không yêu cầu nộp môi trường ảo hay toàn bộ quy tắc; theo hướng dẫn đóng gói bổ sung của giảng viên nếu có.</p>
+<h4>8.3. Điều kiện 0 điểm (PDF trang 9)</h4>
+<ol>
+<li>Dùng AI trong cài đặt, hoặc dùng AI ở thí nghiệm mà không hề khai báo prompt nguyên văn nào.</li>
+<li>Gọi hàm phát hiện góc/phân vùng dựng sẵn bên trong hàm phải nộp.</li>
+<li>Notebook không chạy được từ đầu đến cuối hoặc không có output.</li>
+</ol>
+</div></details><div class="group-progress" data-progress="C" aria-live="polite"></div></section>
+<section id="tai-lieu" data-searchable><h2>Tài liệu & nơi làm việc</h2><div class="resource-grid"><a href="PIPELINE_BAI_TAP.md"><strong>Pipeline Markdown ↗</strong><span>Bản nguồn các đầu việc A/B</span></a><a href="HUONG_DAN_THUC_HIEN.md"><strong>Hướng dẫn chi tiết ↗</strong><span>Hợp đồng, quy định và thí nghiệm</span></a><a href="../../README.md#nhom-va-phan-cong"><strong>Nhóm & phân công ↗</strong><span>Điền thành viên, MSSV, mã việc</span></a><a href="../../pdf/Computer_Vision%2045.pdf"><strong>Đề bài gốc ↗</strong><span>Nguồn yêu cầu chính thức</span></a><a href="../../notebooks/phan_a_harris_va_hai_bien_the.ipynb"><strong>Notebook phần A ↗</strong><span>11 hàm và phần kiểm chứng/thí nghiệm</span></a><a href="../../notebooks/phan_b_phan_vung_anh.ipynb"><strong>Notebook phần B ↗</strong><span>4 hàm và phần kiểm chứng/thí nghiệm</span></a></div><p class="small">Bản HTML được tổng hợp từ pipeline và hướng dẫn của dự án. Hình khái niệm không thay kết quả thực nghiệm. Cập nhật: 2026-11-11T08:40:11+07:00.</p></section>
+</main><footer class="footer">Computer Vision · Bài tập 2 · Tài liệu mở offline · A/B cùng đi đến một bài nộp có thể chạy lại.</footer></div><script>
+(() => {
+  'use strict';
+  document.documentElement.classList.add('js');
+  const all = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const activate = (button, focus = false) => {
+    const group = button.closest('[data-stepper]');
+    all('[data-step]', group).forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    all('.step-panel', group).forEach(p => p.classList.toggle('is-active', p.id === button.dataset.step));
+    if (focus) document.getElementById(button.dataset.step).focus({preventScroll: true});
+  };
+  all('[data-stepper]').forEach(group => {
+    const buttons = all('[data-step]', group);
+    buttons.forEach((button, index) => {
+      button.addEventListener('click', () => activate(button));
+      button.addEventListener('keydown', event => {
+        let next;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % buttons.length;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + buttons.length) % buttons.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = buttons.length - 1;
+        if (next !== undefined) {event.preventDefault(); buttons[next].focus(); activate(buttons[next]);}
+      });
+    });
+    activate(buttons[0]);
+  });
+  all('[data-initial-collapse]').forEach(detail => detail.open = false);
+  const storageKey = 'cv-lab2-pipeline-checks-v1';
+  const checks = all('input[data-check-group]');
+  const storageNote = document.getElementById('storage-note');
+  let saved = {};
+  try {const data = JSON.parse(localStorage.getItem(storageKey) || '{}'); saved = data && typeof data === 'object' ? data : {};}
+  catch (_) {storageNote.textContent = 'Trình duyệt không cho lưu cục bộ. Checklist vẫn dùng được trong phiên này.';}
+  checks.forEach(c => c.checked = saved[c.id] === true);
+  function progress() {
+    const count = checks.filter(c => c.checked).length;
+    document.getElementById('overall-progress').max = checks.length;
+    document.getElementById('overall-progress').value = count;
+    document.getElementById('overall-count').textContent = `${count}/${checks.length} mục đã đánh dấu`;
+    all('[data-progress]').forEach(label => {
+      const group = checks.filter(c => c.dataset.checkGroup === label.dataset.progress);
+      label.textContent = `${group.filter(c => c.checked).length}/${group.length} mục ${label.dataset.progress === 'C' ? 'nghiệm thu' : 'phần ' + label.dataset.progress} đã đánh dấu`;
+    });
+  }
+  checks.forEach(c => c.addEventListener('change', () => {
+    progress();
+    try {localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(checks.map(check => [check.id, check.checked]))));}
+    catch (_) {storageNote.textContent = 'Không thể lưu cục bộ; tiến độ chỉ có trong phiên này.';}
+  }));
+  progress();
+  document.getElementById('reset-checks').addEventListener('click', () => {
+    if (!window.confirm('Đặt lại toàn bộ dấu checklist trên trình duyệt này?')) return;
+    checks.forEach(c => c.checked = false);
+    try {localStorage.removeItem(storageKey);} catch (_) {}
+    progress();
+  });
+  document.getElementById('expand-all').addEventListener('click', () => all('main details').forEach(d => d.open = true));
+  document.getElementById('collapse-all').addEventListener('click', () => all('main details').forEach(d => d.open = false));
+  let printState = [];
+  window.addEventListener('beforeprint', () => {printState = all('main details').map(d => [d, d.open]); printState.forEach(([d]) => d.open = true);});
+  window.addEventListener('afterprint', () => printState.forEach(([d, open]) => d.open = open));
+  document.getElementById('print-page').addEventListener('click', () => window.print());
+  const sidebar = document.getElementById('sidebar');
+  const menu = document.getElementById('menu-toggle');
+  menu.addEventListener('click', () => {const open = sidebar.classList.toggle('is-open'); menu.setAttribute('aria-expanded', String(open));});
+  all('nav a', sidebar).forEach(link => link.addEventListener('click', () => {sidebar.classList.remove('is-open'); menu.setAttribute('aria-expanded', 'false');}));
+  document.addEventListener('keydown', event => {if (event.key === 'Escape') {sidebar.classList.remove('is-open'); menu.setAttribute('aria-expanded', 'false');}});
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      all('nav a', sidebar).forEach(a => {const current = a.hash === '#' + entry.target.id; a.classList.toggle('active', current); if (current) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');});
+    }), {rootMargin: '-10% 0px -65% 0px'});
+    all('main > section').forEach(s => observer.observe(s));
+  }
+  const input = document.getElementById('search-input');
+  const searchStatus = document.getElementById('search-status');
+  const prev = document.getElementById('search-prev');
+  const next = document.getElementById('search-next');
+  let hits = [], hitIndex = -1, timer;
+  function revealHit(index, scroll = true) {
+    if (!hits.length) return;
+    hitIndex = (index + hits.length) % hits.length;
+    hits.forEach((hit, i) => hit.classList.toggle('current-hit', i === hitIndex));
+    const hit = hits[hitIndex];
+    let parent = hit.parentElement;
+    while (parent) {if (parent.tagName === 'DETAILS') parent.open = true; parent = parent.parentElement;}
+    const panel = hit.closest('.step-panel');
+    if (panel) {const button = all('[data-step]').find(b => b.dataset.step === panel.id); if (button) activate(button);}
+    searchStatus.textContent = `${hitIndex + 1}/${hits.length} kết quả`;
+    if (scroll) hit.scrollIntoView({behavior: 'auto', block: 'center'});
+  }
+  function search() {
+    all('mark.search-hit').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent)));
+    all('[data-searchable]').forEach(section => section.normalize());
+    hits = []; hitIndex = -1;
+    const query = input.value.trim().toLocaleLowerCase('vi');
+    if (!query) {searchStatus.textContent = ''; prev.disabled = next.disabled = true; return;}
+    all('[data-searchable]').forEach(section => {
+      const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {acceptNode(node) {
+        return node.parentElement.closest('script,style,button,input,svg,[data-progress]') || !node.textContent.trim() ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }});
+      const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(node => {
+        const value = node.textContent, lower = value.toLocaleLowerCase('vi');
+        let at = lower.indexOf(query), cursor = 0;
+        if (at < 0) return;
+        const fragment = document.createDocumentFragment();
+        while (at >= 0) {
+          fragment.append(document.createTextNode(value.slice(cursor, at)));
+          const mark = document.createElement('mark'); mark.className = 'search-hit'; mark.textContent = value.slice(at, at + query.length); fragment.append(mark); hits.push(mark);
+          cursor = at + query.length; at = lower.indexOf(query, cursor);
+        }
+        fragment.append(document.createTextNode(value.slice(cursor))); node.replaceWith(fragment);
+      });
+    });
+    prev.disabled = next.disabled = !hits.length;
+    if (hits.length) revealHit(0); else searchStatus.textContent = 'Không tìm thấy';
+  }
+  input.addEventListener('input', () => {clearTimeout(timer); timer = setTimeout(search, 180);});
+  input.addEventListener('keydown', event => {if (event.key === 'Enter') {event.preventDefault(); clearTimeout(timer); if (input.value.trim() && !hits.length) search(); else revealHit(hitIndex + (event.shiftKey ? -1 : 1));}});
+  prev.addEventListener('click', () => revealHit(hitIndex - 1));
+  next.addEventListener('click', () => revealHit(hitIndex + 1));
+  document.getElementById('search-clear').addEventListener('click', () => {clearTimeout(timer); input.value = ''; search(); input.focus();});
+})();
+</script></body></html>

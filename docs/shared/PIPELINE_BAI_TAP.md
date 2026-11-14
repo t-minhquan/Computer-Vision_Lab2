@@ -6,11 +6,13 @@
 - **Detailed Plan**: §1 Hiện trạng và cách phối hợp; §2 Phần A; §3 Phần B; §4 Thiết kế thí nghiệm; §5 Nghiệm thu và đóng gói.
 - **References**: [Đề bài gốc](../../pdf/Computer_Vision%2045.pdf), [README và phân công](../../README.md#nhom-va-phan-cong), [hướng dẫn chi tiết](HUONG_DAN_THUC_HIEN.md), [quy tắc báo cáo](../../agents/rules/RESULTS_REPORTING.md).
 - **Created**: 2026-11-11T08:09:23+07:00
-- **Last Updated**: 2026-11-11T08:09:23+07:00
+- **Last Updated**: 2026-11-11T08:40:11+07:00
 
 ---
 
 [STATUS: ACTIVE]
+
+Xem [bản HTML tương tác đầy đủ A/B](PIPELINE_BAI_TAP.html): sơ đồ từng bước, công thức và hợp đồng hàm, tìm kiếm, checklist và bản in offline.
 
 ## Mục lục
 

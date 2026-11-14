@@ -6,7 +6,7 @@
 - **Detailed Plan**: Tổng quan; hiện trạng; quy định; hàm phải nộp; kiểm chứng; điểm số; checklist.
 - **References**: [PDF gốc](pdf/Computer_Vision%2045.pdf), [hướng dẫn chi tiết](docs/shared/HUONG_DAN_THUC_HIEN.md), [quy tắc dự án](agents/README.md).
 - **Created**: 2026-11-11T00:25:41+07:00
-- **Last Updated**: 2026-11-11T08:12:27+07:00
+- **Last Updated**: 2026-11-11T08:40:11+07:00
 
 ---
 
@@ -19,6 +19,8 @@
 | Chưa điền | Chưa điền | Chưa phân công | Chưa thực hiện |
 
 Thông tin nhóm và phân công cho cả phần A và B được cập nhật tại đây.
+
+Mở [hướng dẫn HTML tương tác A/B](docs/shared/PIPELINE_BAI_TAP.html) để xem sơ đồ từng bước, tìm kiếm, checklist và bản in offline.
 
 Xem [pipeline A/B cho nhóm](docs/shared/PIPELINE_BAI_TAP.md): sơ đồ luồng, mã công việc A-01–A-06/B-01–B-06, đầu ra và checklist. Điền mã việc được giao vào bảng trên.
 
