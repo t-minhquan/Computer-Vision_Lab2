@@ -1,0 +1,4 @@
+﻿image,method,T,unassigned_pixels,assigned_fraction,seeds
+05_04_gradient_ngang,stack,30.0,8704,0.46875,2
+05_04_gradient_ngang,queue,30.0,8704,0.46875,2
+05_04_gradient_ngang,srg,không dùng T,0,1.0,2

@@ -1,0 +1,4 @@
+﻿image,total_pixels,unassigned_pixels,assigned_fraction,status
+anh_phang,4096,0,1.0,PASS
+gradient_ngang,16384,0,1.0,PASS
+hai_vung_cau_noi,16384,0,1.0,PASS

@@ -1,8 +1,11 @@
 """Run with .venv/Scripts/python.exe -m unittest discover -s tests -v."""
 import ast
+import csv
 import json
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 
@@ -12,7 +15,7 @@ PATH = ROOT / 'notebooks/phan_b_phan_vung_anh.ipynb'
 DOCUMENT = json.loads(PATH.read_text(encoding='utf-8'))
 NS = {}
 for index, cell in enumerate(DOCUMENT['cells']):
-    if cell['cell_type'] == 'code':
+    if cell['cell_type'] == 'code' and cell.get('metadata', {}).get('section') == 'implementation':
         exec(compile(''.join(cell['source']), f'{PATH.name}:cell{index}', 'exec'), NS)
 
 
@@ -22,9 +25,21 @@ class PartBTests(unittest.TestCase):
             notebook = json.loads(path.read_text(encoding='utf-8'))
             markdown = '\n'.join(''.join(c['source']) for c in notebook['cells']
                                  if c['cell_type'] == 'markdown')
-            self.assertNotIn('prompt', markdown.lower())
+            self.assertNotIn('Các prompt yêu cầu dùng để tạo template', markdown)
             self.assertNotIn('| Thành viên |', markdown)
             self.assertIn('../README.md#nhom-va-phan-cong', markdown)
+            for index, cell in enumerate(notebook['cells']):
+                declared_prompt = cell.get('metadata', {}).get('ai_prompt')
+                if cell['cell_type'] == 'code' and declared_prompt:
+                    self.assertGreater(index, 0)
+                    self.assertEqual(notebook['cells'][index - 1]['cell_type'], 'markdown')
+                    self.assertIn(declared_prompt, ''.join(notebook['cells'][index - 1]['source']))
+                if cell['cell_type'] == 'code' and cell.get('metadata', {}).get('section') == 'data_preparation':
+                    self.assertGreater(index, 0)
+                    previous = notebook['cells'][index - 1]
+                    self.assertEqual(previous['cell_type'], 'markdown')
+                    self.assertIn('tạo ảnh thử đi xong tự ném prompt ở trước cell, lưu ảnh vô image B nha',
+                                  ''.join(previous['source']))
         self.assertIn('| Thành viên | MSSV | Công việc | Trạng thái |',
                       (ROOT / 'README.md').read_text(encoding='utf-8'))
 
@@ -52,7 +67,7 @@ class PartBTests(unittest.TestCase):
         imports = set()
         calls = []
         for cell in DOCUMENT['cells']:
-            if cell['cell_type'] != 'code':
+            if cell['cell_type'] != 'code' or cell.get('metadata', {}).get('section') != 'implementation':
                 continue
             tree = ast.parse(''.join(cell['source']))
             for node in ast.walk(tree):
@@ -235,6 +250,77 @@ class PartBTests(unittest.TestCase):
             NS['seed_sensitivity'](image, [(0, 0)], NS['srg'], n_trials=0)
         with self.assertRaises(ValueError):
             NS['seed_sensitivity'](image, [(0, 0)], NS['srg'], jitter=-1)
+
+
+class RealImagePreparationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import cv2
+        cls.plt = plt
+        cls.real_ns = dict(NS, plt=plt, cv2=cv2, csv=csv, Path=Path,
+                           b_rng_seed=42, b_run_stamp='synthetic-unit-test')
+        # Only load function definitions: never execute notebook result-writing cells.
+        for ident in ('b-verification-setup', 'b-real-images-helpers'):
+            cell = next(c for c in DOCUMENT['cells'] if c.get('id') == ident)
+            tree = ast.parse(''.join(cell['source']))
+            functions = ast.Module(body=[node for node in tree.body if isinstance(node, ast.FunctionDef)],
+                                   type_ignores=[])
+            exec(compile(functions, ident, 'exec'), cls.real_ns)
+
+    def test_two_missing_real_images_are_skipped(self):
+        with tempfile.TemporaryDirectory() as directory, patch('builtins.print'):
+            output = Path(directory) / 'results'
+            cases = [{'name': name, 'path': None, 'seeds': []} for name in ('real_01', 'real_02')]
+            reports = self.real_ns['b_run_real_images'](cases, image_dir=directory, output_dir=output)
+            self.assertEqual([r['status'] for r in reports], ['missing_image', 'missing_image'])
+            self.assertFalse(output.exists())
+
+    def test_two_configured_images_load_resize_and_compare(self):
+        # Fixtures are synthetic; no claims about real photo segmentation.
+        with tempfile.TemporaryDirectory() as directory, patch('matplotlib.pyplot.show'), patch('builtins.print'):
+            folder = Path(directory)
+            for name, shape in [('one', (64, 96)), ('two', (32, 24))]:
+                image = np.tile(np.linspace(0, 255, shape[1], dtype=np.uint8), (shape[0], 1))
+                self.plt.imsave(folder / (name + '.png'), np.repeat(image[..., None], 3, axis=2))
+            cases = [
+                {'name': 'real_01', 'path': 'one.png', 'source': 'synthetic fixture',
+                 'seeds': [(3, 3), (16, 25)], 'T': 30},
+                {'name': 'real_02', 'path': 'two.png', 'source': 'synthetic fixture',
+                 'seeds': [(3, 3), (25, 20)], 'T': 30},
+            ]
+            output = folder / 'results'
+            reports = self.real_ns['b_run_real_images'](cases, max_side=32, image_dir=folder, output_dir=output)
+            self.assertEqual([r['status'] for r in reports], ['completed', 'completed'])
+            self.assertEqual([r['working_shape'] for r in reports], [(21, 32), (32, 24)])
+            for report in reports:
+                self.assertEqual(report['image'].ndim, 2)
+                labels = report['result']['labels']
+                self.assertTrue(np.all(labels['srg'] >= 0))
+                self.assertTrue(all(value.shape == report['working_shape'] for value in labels.values()))
+                self.assertEqual(len(report['result']['pairwise']), 3)
+                for suffix in ('_input.png', '_methods.png', '_coverage.csv', '_pairwise.csv'):
+                    self.assertTrue((output / (report['name'] + suffix)).is_file())
+            with (output / 'metadata.csv').open(encoding='utf-8-sig', newline='') as stream:
+                rows = list(csv.DictReader(stream))
+            self.assertEqual(len(rows), 2)
+            self.assertTrue(all(row['source'] == 'synthetic fixture' for row in rows))
+
+    def test_missing_and_invalid_seeds_do_not_run_segmentation(self):
+        with tempfile.TemporaryDirectory() as directory, patch('matplotlib.pyplot.show'), patch('builtins.print'):
+            folder = Path(directory)
+            image = np.zeros((8, 8, 3), dtype=np.uint8)
+            self.plt.imsave(folder / 'preview.png', image)
+            cases = [
+                {'name': 'real_01', 'path': 'preview.png', 'seeds': []},
+                {'name': 'real_02', 'path': 'preview.png', 'seeds': [(99, 99)]},
+            ]
+            output = folder / 'results'
+            reports = self.real_ns['b_run_real_images'](cases, image_dir=folder, output_dir=output)
+            self.assertEqual([r['status'] for r in reports], ['missing_seeds', 'invalid_seeds'])
+            self.assertFalse(output.exists())
 
 
 if __name__ == '__main__':

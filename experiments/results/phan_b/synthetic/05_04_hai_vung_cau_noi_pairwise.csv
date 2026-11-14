@@ -1,0 +1,4 @@
+﻿image,method_a,method_b,different_pixels,total_pixels,different_fraction
+05_04_hai_vung_cau_noi,stack,queue,9,16384,0.00054931640625
+05_04_hai_vung_cau_noi,stack,srg,9,16384,0.00054931640625
+05_04_hai_vung_cau_noi,queue,srg,0,16384,0.0

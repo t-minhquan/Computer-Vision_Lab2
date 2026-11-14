@@ -1,0 +1,8 @@
+﻿image,region,row,col
+anh_phang,0,16,16
+anh_phang,1,48,48
+gradient_ngang,0,64,8
+gradient_ngang,1,64,80
+hai_vung_cau_noi,0,10,10
+hai_vung_cau_noi,1,64,36
+hai_vung_cau_noi,2,64,92

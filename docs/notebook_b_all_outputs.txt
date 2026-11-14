@@ -1,0 +1,271 @@
+=== Cell 3 [code] ===
+Source: import heapq
+
+==================================================
+
+=== Cell 6 [code] ===
+Source: def region_growing_classic(img, seeds, T, order="stack"):
+
+==================================================
+
+=== Cell 9 [code] ===
+Source: def srg(img, seeds, connectivity=4, stale="lazy", tie="insertion"):
+
+==================================================
+
+=== Cell 11 [code] ===
+Source: def srg_step_frames(img, seeds, n_frames=8, **kwargs):
+
+==================================================
+
+=== Cell 13 [code] ===
+Source: def seed_sensitivity(img, seeds, segment_fn, n_trials=20, jitter=3):
+
+==================================================
+
+=== Cell 15 [code] ===
+Source: from pathlib import Path
+[stream - stdout]
+Đã lưu ..\images\phan_b\anh_phang.png: (64, 64), uint8, [128, 128]
+Đã lưu ..\images\phan_b\gradient_ngang.png: (128, 128), uint8, [0, 255]
+Đã lưu ..\images\phan_b\hai_vung_cau_noi.png: (128, 128), uint8, [20, 160]
+
+[display_data: keys=['image/png', 'text/plain']]
+
+==================================================
+
+=== Cell 18 [code] ===
+Source: import csv
+[stream - stdout]
+field           | value                                                    
+run_at          | 2026-11-14T22:32:12+07:00                                
+python          | 3.12.6                                                   
+kernel          | D:\Download\Computer-Vision_Lab2\.venv\Scripts\python.exe
+numpy           | 2.5.4                                                    
+matplotlib      | 3.11.2                                                   
+opencv          | 5.0.0                                                    
+platform        | Windows-11-10.0.26200-SP0                                
+rng_seed        | 42                                                       
+connectivity    | 4                                                        
+T_classic       | 30.0                                                     
+intensity_range | 0..255                                                   
+who             | Nhóm theo README; cấu hình và ảnh ghi trong CSV          
+Đã lưu: ..\experiments\results\phan_b\synthetic\run_metadata.csv
+
+image            | region | row | col
+anh_phang        | 0      | 16  | 16 
+anh_phang        | 1      | 48  | 48 
+gradient_ngang   | 0      | 64  | 8  
+gradient_ngang   | 1      | 64  | 80 
+hai_vung_cau_noi | 0      | 10  | 10 
+hai_vung_cau_noi | 1      | 64  | 36 
+hai_vung_cau_noi | 2      | 64  | 92 
+Đã lưu: ..\experiments\results\phan_b\synthetic\synthetic_seeds.csv
+
+
+[stream - stdout]
+Cấu hình và bảng số thuộc lần chạy: 2026-11-14T22:32:12+07:00
+
+
+==================================================
+
+=== Cell 21 [code] ===
+Source: b_partition_rows = []
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image            | total_pixels | unassigned_pixels | assigned_fraction | status
+anh_phang        | 4096         | 0                 | 1.0               | PASS  
+gradient_ngang   | 16384        | 0                 | 1.0               | PASS  
+hai_vung_cau_noi | 16384        | 0                 | 1.0               | PASS  
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_01_partition.csv
+
+
+
+==================================================
+
+=== Cell 25 [code] ===
+Source: b_region_rows = []
+[stream - stdout]
+image            | seeds | regions | seeds_preserved | status
+anh_phang        | 2     | 2       | True            | PASS  
+gradient_ngang   | 2     | 2       | True            | PASS  
+hai_vung_cau_noi | 3     | 3       | True            | PASS  
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_02_regions.csv
+
+Hình nhãn của từng ảnh được hiển thị ở mục 5.1.
+
+
+==================================================
+
+=== Cell 29 [code] ===
+Source: b_order_rows = []
+[display_data: keys=['image/png', 'text/plain']]
+[display_data: keys=['image/png', 'text/plain']]
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image            | tie       | different_pixels | total_pixels | different_fraction
+anh_phang        | raster    | 0                | 4096         | 0.0               
+anh_phang        | insertion | 575              | 4096         | 0.140380859375    
+gradient_ngang   | raster    | 0                | 16384        | 0.0               
+gradient_ngang   | insertion | 0                | 16384        | 0.0               
+hai_vung_cau_noi | raster    | 0                | 16384        | 0.0               
+hai_vung_cau_noi | insertion | 0                | 16384        | 0.0               
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_03_seed_order.csv
+
+raster đạt bất biến sau căn chỉnh trên các ảnh đã chạy. insertion có thể đổi vùng khi hòa; bảng ghi cả kết quả bằng 0.
+
+
+==================================================
+
+=== Cell 33 [code] ===
+Source: b_method_results = {}
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image           | method | T            | unassigned_pixels | assigned_fraction | seeds
+05_04_anh_phang | stack  | 30.0         | 0                 | 1.0               | 2    
+05_04_anh_phang | queue  | 30.0         | 0                 | 1.0               | 2    
+05_04_anh_phang | srg    | không dùng T | 0                 | 1.0               | 2    
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_anh_phang_coverage.csv
+
+image           | method_a | method_b | different_pixels | total_pixels | different_fraction
+05_04_anh_phang | stack    | queue    | 0                | 4096         | 0.0               
+05_04_anh_phang | stack    | srg      | 1712             | 4096         | 0.41796875        
+05_04_anh_phang | queue    | srg      | 1712             | 4096         | 0.41796875        
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_anh_phang_pairwise.csv
+
+
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image                | method | T            | unassigned_pixels | assigned_fraction | seeds
+05_04_gradient_ngang | stack  | 30.0         | 8704              | 0.46875           | 2    
+05_04_gradient_ngang | queue  | 30.0         | 8704              | 0.46875           | 2    
+05_04_gradient_ngang | srg    | không dùng T | 0                 | 1.0               | 2    
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_gradient_ngang_coverage.csv
+
+image                | method_a | method_b | different_pixels | total_pixels | different_fraction
+05_04_gradient_ngang | stack    | queue    | 5376             | 16384        | 0.328125          
+05_04_gradient_ngang | stack    | srg      | 8704             | 16384        | 0.53125           
+05_04_gradient_ngang | queue    | srg      | 8704             | 16384        | 0.53125           
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_gradient_ngang_pairwise.csv
+
+
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image                  | method | T            | unassigned_pixels | assigned_fraction | seeds
+05_04_hai_vung_cau_noi | stack  | 30.0         | 0                 | 1.0               | 3    
+05_04_hai_vung_cau_noi | queue  | 30.0         | 0                 | 1.0               | 3    
+05_04_hai_vung_cau_noi | srg    | không dùng T | 0                 | 1.0               | 3    
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_hai_vung_cau_noi_coverage.csv
+
+image                  | method_a | method_b | different_pixels | total_pixels | different_fraction
+05_04_hai_vung_cau_noi | stack    | queue    | 9                | 16384        | 0.00054931640625  
+05_04_hai_vung_cau_noi | stack    | srg      | 9                | 16384        | 0.00054931640625  
+05_04_hai_vung_cau_noi | queue    | srg      | 0                | 16384        | 0.0               
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_hai_vung_cau_noi_pairwise.csv
+
+image                  | method_a | method_b | different_pixels | total_pixels | different_fraction
+05_04_anh_phang        | stack    | queue    | 0                | 4096         | 0.0               
+05_04_anh_phang        | stack    | srg      | 1712             | 4096         | 0.41796875        
+05_04_anh_phang        | queue    | srg      | 1712             | 4096         | 0.41796875        
+05_04_gradient_ngang   | stack    | queue    | 5376             | 16384        | 0.328125          
+05_04_gradient_ngang   | stack    | srg      | 8704             | 16384        | 0.53125           
+05_04_gradient_ngang   | queue    | srg      | 8704             | 16384        | 0.53125           
+05_04_hai_vung_cau_noi | stack    | queue    | 9                | 16384        | 0.00054931640625  
+05_04_hai_vung_cau_noi | stack    | srg      | 9                | 16384        | 0.00054931640625  
+05_04_hai_vung_cau_noi | queue    | srg      | 0                | 16384        | 0.0               
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_04_all_pairwise.csv
+
+Đếm trên toàn ảnh sau căn chỉnh nhãn; −1 được giữ là một trạng thái riêng, không bỏ khỏi mẫu số.
+
+
+==================================================
+
+=== Cell 37 [code] ===
+Source: b_flat_labels = {"insertion": b_base["anh_phang"][0]}
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image     | tie_a     | tie_b  | rng_seed | different_pixels | total_pixels | different_fraction
+anh_phang | insertion | raster | 42       | 1712             | 4096         | 0.41796875        
+anh_phang | insertion | random | 42       | 1528             | 4096         | 0.373046875       
+anh_phang | raster    | random | 42       | 3240             | 4096         | 0.791015625       
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_05_ties.csv
+
+
+
+==================================================
+
+=== Cell 41 [code] ===
+Source: b_frame_seeds = b_test_seeds["hai_vung_cau_noi"]
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+frame | target_percent | target_pixels | assigned_pixels | total_pixels
+1     | 12.5           | 2048          | 2048            | 16384       
+2     | 25.0           | 4096          | 4096            | 16384       
+3     | 37.5           | 6144          | 6144            | 16384       
+4     | 50.0           | 8192          | 8192            | 16384       
+5     | 62.5           | 10240         | 10240           | 16384       
+6     | 75.0           | 12288         | 12288           | 16384       
+7     | 87.5           | 14336         | 14336           | 16384       
+8     | 100.0          | 16384         | 16384           | 16384       
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_06_frames.csv
+
+
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image            | trials | jitter | rng_seed | min_frequency | max_frequency | mean_frequency | nonzero_pixels
+hai_vung_cau_noi | 20     | 3      | 42       | 0.0           | 0.0           | 0.0            | 0             
+Đã lưu: ..\experiments\results\phan_b\synthetic\05_06_sensitivity_summary.csv
+
+SRG lazy/insertion, connectivity=4. Tần suất so với phân vùng gốc sau căn chỉnh theo seed; 0 là ổn định trên các trial đã chạy.
+
+
+==================================================
+
+=== Cell 44 [code] ===
+Source: 
+
+==================================================
+
+=== Cell 48 [code] ===
+Source: b_lazy = b_base["gradient_ngang"][0]
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image          | connectivity | tie       | different_pixels | total_pixels | different_fraction
+gradient_ngang | 4            | insertion | 2432             | 16384        | 0.1484375         
+Đã lưu: ..\experiments\results\phan_b\synthetic\06_01_lazy_frozen.csv
+
+Chỉ đổi stale. lazy cập nhật giá trị tham chiếu theo vùng; frozen giữ cường độ tại seed, nên vị trí ranh giới trên gradient có thể khác.
+
+
+==================================================
+
+=== Cell 52 [code] ===
+Source: # Dùng lại đúng kết quả ảnh phẳng ở mục 5.5; không chạy một cấu hình khác ngầm.
+[display_data: keys=['image/png', 'text/plain']]
+[stream - stdout]
+image     | tie_a     | tie_b  | rng_seed | different_pixels | total_pixels | different_fraction
+anh_phang | insertion | raster | 42       | 1712             | 4096         | 0.41796875        
+anh_phang | insertion | random | 42       | 1528             | 4096         | 0.373046875       
+anh_phang | raster    | random | 42       | 3240             | 4096         | 0.791015625       
+Đã lưu: ..\experiments\results\phan_b\synthetic\06_02_ties.csv
+
+Ảnh phẳng có mọi delta bằng nhau: thứ tự ưu tiên quyết định pixel nào được gán trước, từ đó đổi khả năng tiếp cận các vùng.
+
+
+==================================================
+
+=== Cell 56 [code] ===
+Source: def b_run_real_images(cases, max_side=256, image_dir=None, output_dir=None):
+
+==================================================
+
+=== Cell 58 [code] ===
+Source: # Đường dẫn tương đối được tính từ ../images/phan_b/; chưa có ảnh thì để None.
+[stream - stdout]
+anh_that_01: chưa cấu hình ảnh — bỏ qua.
+anh_that_02: chưa cấu hình ảnh — bỏ qua.
+Trạng thái hai ô ảnh thật: [('anh_that_01', 'missing_image'), ('anh_that_02', 'missing_image')]
+
+
+==================================================
+

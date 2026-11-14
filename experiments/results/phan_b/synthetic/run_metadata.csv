@@ -1,0 +1,13 @@
+﻿field,value
+run_at,2026-11-14T22:46:48+07:00
+python,3.12.6
+kernel,d:\Download\Computer-Vision_Lab2\.venv\Scripts\python.exe
+numpy,2.5.4
+matplotlib,3.11.2
+opencv,5.0.0
+platform,Windows-11-10.0.26200-SP0
+rng_seed,42
+connectivity,4
+T_classic,30.0
+intensity_range,0..255
+who,Nhóm theo README; cấu hình và ảnh ghi trong CSV

@@ -1,0 +1,10 @@
+﻿image,method_a,method_b,different_pixels,total_pixels,different_fraction
+05_04_anh_phang,stack,queue,0,4096,0.0
+05_04_anh_phang,stack,srg,1712,4096,0.41796875
+05_04_anh_phang,queue,srg,1712,4096,0.41796875
+05_04_gradient_ngang,stack,queue,5376,16384,0.328125
+05_04_gradient_ngang,stack,srg,8704,16384,0.53125
+05_04_gradient_ngang,queue,srg,8704,16384,0.53125
+05_04_hai_vung_cau_noi,stack,queue,9,16384,0.00054931640625
+05_04_hai_vung_cau_noi,stack,srg,9,16384,0.00054931640625
+05_04_hai_vung_cau_noi,queue,srg,0,16384,0.0

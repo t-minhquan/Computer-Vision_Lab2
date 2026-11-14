@@ -1,0 +1,4 @@
+﻿image,method_a,method_b,different_pixels,total_pixels,different_fraction
+05_04_anh_phang,stack,queue,0,4096,0.0
+05_04_anh_phang,stack,srg,1712,4096,0.41796875
+05_04_anh_phang,queue,srg,1712,4096,0.41796875

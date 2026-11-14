@@ -1,0 +1,796 @@
+=== Cell  0 [markdown] ===
+First line: # Phần B — Region Growing và SRG
+Content:
+# Phần B — Region Growing và SRG
+
+### Bài tập 2 — Cài đặt Region Growing và Seeded Region Growing
+
+- **Created**: 2026-11-11T07:35:41+07:00
+- **Last Updated**: 2026-11-14T22:35:44+07:00
+- **Author**: Xem [nhóm và phân công](../README.md#nhom-va-phan-cong).
+- **Objective**: Tự cài đặt, kiểm chứng và phân tích phần B theo đề bài.
+
+## References & Consumed Artifacts
+
+- [Đề bài gốc](../pdf/Computer_Vision%2045.pdf).
+- [Hướng dẫn và hợp đồng hàm](../docs/shared/HUONG_DAN_THUC_HIEN.md).
+- [Quy ước notebook](../agents/rules/NOTEBOOK_HEADER_CONVENTION.md).
+- [Quy tắc báo cáo](../agents/rules/RESULTS_REPORTING.md).
+- [Ảnh phần này](../images/phan_b/), [kết quả xuất](../experiments/results/phan_b/).
+- Source Code: bốn hàm phần B và các hàm hỗ trợ được định nghĩa trực tiếp trong notebook; kiểm chứng tổng hợp được chạy trong notebook; thí nghiệm chính và ảnh thật chưa hoàn thành.
+
+Hai notebook là bản làm việc; trước khi nộp phải ghép thành một notebook theo đề.
+
+
+----------------------------------------
+
+=== Cell  1 [markdown] ===
+First line: ## 1. Thư viện và quy ước cài đặt
+Content:
+## 1. Thư viện và quy ước cài đặt
+
+Các hàm được cài đặt trực tiếp trong notebook. Không gọi hàm góc /
+phân vùng dựng sẵn bên trong hàm phải nộp. Đối chiếu thư viện chỉ ở phần được đề cho phép.
+
+Được dùng NumPy, Matplotlib, math, time; heapq cho SRG. Các hàm SciPy/OpenCV có điều kiện
+phải đối chiếu bảng thư viện ở README và đề. Cài thư viện không đồng nghĩa được dùng mọi hàm.
+
+Nhóm tự chọn ảnh, giả thuyết, phép đo, tham số và kết luận.
+
+----------------------------------------
+
+=== Cell  2 [markdown] ===
+First line: ## 2. Môi trường và dữ liệu — nhóm tự điền
+Content:
+## 2. Môi trường và dữ liệu — nhóm tự điền
+
+Metadata kernel là Python 3; phiên bản trong metadata phản ánh môi trường lúc dựng khung,
+không thay thế việc ghi phiên bản thực tế khi chạy bài.
+
+| Thành phần | Phiên bản / thông tin thực tế |
+| --- | --- |
+| Python / đường dẫn kernel | 3.12.6; `D:\Download\Computer-Vision_Lab2\.venv\Scripts\python.exe` |
+| NumPy / Matplotlib / OpenCV | 2.5.4 / 3.11.2 / 5.0.0 |
+| Thiết bị, thời điểm chạy, seed ngẫu nhiên | Windows-11-10.0.26200-SP0; 2026-11-14T22:32:12+07:00; RNG seed 42 |
+
+| Ảnh | Nguồn / quyền sử dụng | Kích thước / kiểu / miền cường độ | Phép chỉnh sửa |
+| --- | --- | --- | --- |
+| [Ảnh phẳng](../images/phan_b/anh_phang.png) | Tự tổng hợp bằng code NumPy trong notebook, hỗ trợ AI được khai báo tại cell tạo ảnh | 64×64; uint8; giá trị 128 | Không |
+| [Gradient ngang](../images/phan_b/gradient_ngang.png) | Tự tổng hợp bằng code NumPy trong notebook, hỗ trợ AI được khai báo tại cell tạo ảnh | 128×128; uint8; [0,255] | Không |
+| [Hai vùng có cầu nối](../images/phan_b/hai_vung_cau_noi.png) | Tự tổng hợp bằng code NumPy trong notebook, hỗ trợ AI được khai báo tại cell tạo ảnh | 128×128; uint8; [20,160] | Không |
+
+- Mở notebook với working directory là thư mục chứa notebook.
+- Đọc ảnh từ `../images/phan_b/`; xuất bảng/hình vào `../experiments/results/phan_b/`.
+- Ghi rõ ảnh xám `(H, W)`, miền cường độ và ngưỡng cùng đơn vị.
+- Điểm theo `(row, col)`; khi vẽ trục ngang là col, trục dọc là row.
+- Quy ước biên, seeds, biến đổi và ghép/đếm: nhóm tự ghi trước khi đo.
+
+Ô dưới chỉ khai báo NumPy, heapq và bộ máy SRG dùng chung. Stack dùng list; queue dùng list kèm chỉ số đọc.
+
+Ảnh float64 giữ nguyên miền cường độ. Seeds là các tọa độ nguyên (row, col), không rỗng, không trùng, nằm trong ảnh; nhãn theo thứ tự seeds. Lân cận 4: trên, trái, phải, dưới; lân cận 8 bổ sung chéo trên trái, trên phải, dưới trái, dưới phải. SRG dùng heap lazy; biên là pixel kề nhiều vùng tại thời điểm gán và vẫn có nhãn. Phá hòa insertion theo thứ tự chèn/seed, raster theo tọa độ pixel/seed, random theo ưu tiên cố định trong mỗi lần chạy. Đặt np.random.seed trước khi chạy để tái lập. Các quy ước frames và sensitivity được ghi trong docstring.
+
+
+----------------------------------------
+
+=== Cell  3 [code] ===
+First line: import heapq
+Code lines count: 105
+Code preview:
+import heapq
+import numpy as np
+def _b_integer(value, name, minimum=0):
+if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value < minimum:
+raise ValueError(f"{name} phải là số nguyên >= {minimum}")
+return int(value)
+Outputs: 
+
+----------------------------------------
+
+=== Cell  4 [markdown] ===
+First line: ## 3. Region Growing — tự cài đặt
+Content:
+## 3. Region Growing — tự cài đặt
+
+Các hàm được định nghĩa trong các ô code dưới đây.
+
+----------------------------------------
+
+=== Cell  5 [markdown] ===
+First line: ### `region_growing_classic(img, seeds, T, order="stack")`
+Content:
+### `region_growing_classic(img, seeds, T, order="stack")`
+
+**Hợp đồng đầu ra:** Mảng nhãn int32; -1 cho pixel chưa thuộc vùng; hỗ trợ stack (LIFO) và queue (FIFO).
+
+**Trạng thái:** Đã cài đặt trong ô code tiếp theo; chưa chạy thí nghiệm trên ảnh tự chọn.
+
+----------------------------------------
+
+=== Cell  6 [code] ===
+First line: def region_growing_classic(img, seeds, T, order="stack"):
+Code lines count: 31
+Code preview:
+def region_growing_classic(img, seeds, T, order="stack"):
+"""Phát triển từng vùng, lân cận 4; ngưỡng so với trung bình cập nhật.
+Khởi tạo tất cả seed trước, xử lý vùng theo thứ tự seeds. Frontier
+chứa pixel đã nhận: duyệt lân cận, xét ngưỡng và cập nhật trung bình
+ngay trước khi đưa pixel lân cận được nhận vào stack/queue (PDF trang 6).
+"""
+Outputs: 
+
+----------------------------------------
+
+=== Cell  7 [markdown] ===
+First line: ## 4. SRG và hàm hỗ trợ — tự cài đặt
+Content:
+## 4. SRG và hàm hỗ trợ — tự cài đặt
+
+Các hàm được định nghĩa trong các ô code dưới đây.
+
+----------------------------------------
+
+=== Cell  8 [markdown] ===
+First line: ### `srg(img, seeds, connectivity=4, stale="lazy", tie="insertion")`
+Content:
+### `srg(img, seeds, connectivity=4, stale="lazy", tie="insertion")`
+
+**Hợp đồng đầu ra:** (labels, boundary_mask); nhãn cuối cùng đều ≥ 0; dùng heapq; các lựa chọn stale/tie theo đề.
+
+**Trạng thái:** Đã cài đặt trong ô code tiếp theo; chưa chạy thí nghiệm trên ảnh tự chọn.
+
+----------------------------------------
+
+=== Cell  9 [code] ===
+First line: def srg(img, seeds, connectivity=4, stale="lazy", tie="insertion"):
+Code lines count: 9
+Code preview:
+def srg(img, seeds, connectivity=4, stale="lazy", tie="insertion"):
+"""Trả (labels int32, boundary_mask bool), mọi pixel cuối cùng có nhãn.
+lazy: tính lại delta khi pop theo trung bình vùng hiện tại, requeue nếu
+thay đổi. frozen: so với cường độ seed. Heap lazy không quét lại toàn
+bộ frontier khi trung bình đổi; ưu tiên là các khóa hiện có trong heap.
+boundary_mask ghi pixel kề nhiều vùng tại thời điểm gán, không gồm seed.
+Outputs: 
+
+----------------------------------------
+
+=== Cell 10 [markdown] ===
+First line: ### `srg_step_frames(img, seeds, n_frames=8, **kwargs)`
+Content:
+### `srg_step_frames(img, seeds, n_frames=8, **kwargs)`
+
+**Hợp đồng đầu ra:** Danh sách n_frames ảnh nhãn tại các mốc tiến trình; các ảnh là bản chụp độc lập.
+
+**Trạng thái:** Đã cài đặt trong ô code tiếp theo; chưa chạy thí nghiệm trên ảnh tự chọn.
+
+----------------------------------------
+
+=== Cell 11 [code] ===
+First line: def srg_step_frames(img, seeds, n_frames=8, **kwargs):
+Code lines count: 15
+Code preview:
+def srg_step_frames(img, seeds, n_frames=8, **kwargs):
+"""Chụp tại ceil(k * số_pixel / n_frames), k=1..n_frames; frame cuối hoàn tất.
+n_frames=1 chỉ chụp kết quả cuối. Nhiều mốc trùng nhau trên ảnh nhỏ
+hoặc mốc đã đạt ngay khi gán seeds vẫn tạo các bản sao độc lập.
+kwargs hỗ trợ connectivity, stale và tie.
+"""
+Outputs: 
+
+----------------------------------------
+
+=== Cell 12 [markdown] ===
+First line: ### `seed_sensitivity(img, seeds, segment_fn, n_trials=20, jitter=3)`
+Content:
+### `seed_sensitivity(img, seeds, segment_fn, n_trials=20, jitter=3)`
+
+**Hợp đồng đầu ra:** Bản đồ tần suất đổi nhãn khi dịch seeds trong khoảng ±jitter; ghi quy ước nhãn và cách xử lý jitter không hợp lệ.
+
+**Trạng thái:** Đã cài đặt trong ô code tiếp theo; chưa chạy thí nghiệm trên ảnh tự chọn.
+
+----------------------------------------
+
+=== Cell 13 [code] ===
+First line: def seed_sensitivity(img, seeds, segment_fn, n_trials=20, jitter=3):
+Code lines count: 52
+Code preview:
+def seed_sensitivity(img, seeds, segment_fn, n_trials=20, jitter=3):
+"""Tần suất đổi vùng theo định danh seed, so với phân vùng gốc.
+segment_fn(image, seeds) trả labels hoặc (labels, boundary_mask).
+Nhãn tại các seed phải khác nhau; pixel chưa gán giữ mã -1. Dịch seed
+trong cửa sổ nguyên ±jitter, giới hạn trong ảnh, không trùng; tránh các
+vị trí seed gốc còn lại để luôn có lựa chọn dự phòng. Dùng np.random.seed
+Outputs: 
+
+----------------------------------------
+
+=== Cell 14 [markdown] ===
+First line: ### Dữ liệu tổng hợp cho phần B
+Content:
+### Dữ liệu tổng hợp cho phần B
+
+Nguồn: ảnh tự tổng hợp bằng code NumPy trong ô bên dưới, có hỗ trợ AI theo prompt đã ghi. Không dùng công cụ sinh ảnh AI; không có nhiễu nên không cần RNG seed khi tạo dữ liệu.
+
+| File trong thư mục ảnh B | Mảng nguồn | Nội dung / mục đích thử |
+| --- | --- | --- |
+| [anh_phang.png](../images/phan_b/anh_phang.png) | `(64, 64)`, uint8 | Mọi pixel bằng 128; dùng thử phá hòa với hai seeds |
+| [gradient_ngang.png](../images/phan_b/gradient_ngang.png) | `(128, 128)`, uint8 | Tăng từ 0 đến 255 theo chiều ngang; dùng thử lazy/frozen |
+| [hai_vung_cau_noi.png](../images/phan_b/hai_vung_cau_noi.png) | `(128, 128)`, uint8 | Nền 20; hai hình tròn 100/160 nối bằng cầu gradient; dùng thử quét T |
+
+Hai hình tròn có tâm `(64, 36)` và `(64, 92)`, bán kính 20. Cầu nằm tại hàng 60–68, cột 54–74, tăng từ 100 đến 160. Mọi tọa độ theo `(row, col)`.
+
+Matplotlib lưu PNG hiển thị xám, có thể chứa các kênh RGB/alpha. Khi phân vùng, dùng trực tiếp các mảng xám uint8 trong `b_images` (các hàm sẽ chuyển sang float64 và giữ miền cường độ); khi đọc PNG lại, chuyển về ảnh xám trước khi truyền vào thuật toán. Các kiểm chứng chạy ở mục 5; thí nghiệm chính và kết luận ảnh thật chưa hoàn thành.
+
+**Khai báo AI — chỉ tạo dữ liệu tổng hợp và hiển thị/lưu ảnh.**
+
+Prompt nguyên văn:
+
+> tạo ảnh thử đi xong tự ném prompt ở trước cell, lưu ảnh vô image B nha
+
+----------------------------------------
+
+=== Cell 15 [code] ===
+First line: from pathlib import Path
+Code lines count: 47
+Code preview:
+from pathlib import Path
+import matplotlib.pyplot as plt
+# Working directory là thư mục chứa notebook.
+b_image_dir = Path("../images/phan_b")
+b_image_dir.mkdir(parents=True, exist_ok=True)
+b_flat = np.full((64, 64), 128, dtype=np.uint8)
+Outputs: stream(Đã lưu ..\images\phan_b\anh_phang.png: (64, 64), uint8, [128, 128] Đã lưu ..\images\phan_b\gradient_); display(image/data)
+
+----------------------------------------
+
+=== Cell 16 [markdown] ===
+First line: ## 5. Kiểm chứng phần B
+Content:
+## 5. Kiểm chứng phần B
+
+Các cell dưới dùng ba ảnh tổng hợp tại mục dữ liệu. Cấu hình, thời điểm, môi trường và seeds được ghi vào CSV; người thực hiện theo README. Nhãn được căn chỉnh theo seed trước khi đếm pixel khác. Các bảng là số đo thật từ lần Run All, không phải số minh họa.
+
+
+----------------------------------------
+
+=== Cell 17 [markdown] ===
+First line: **Khai báo AI — cấu hình kiểm chứng, hàm hiển thị và lưu kết quả.**
+Content:
+**Khai báo AI — cấu hình kiểm chứng, hàm hiển thị và lưu kết quả.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 18 [code] ===
+First line: import csv
+Code lines count: 97
+Code preview:
+import csv
+import platform
+import sys
+from datetime import datetime
+import cv2
+b_result_dir = Path("../experiments/results/phan_b/synthetic")
+Outputs: stream(field           | value                                                     run_at          | 2026-1); stream(Cấu hình và bảng số thuộc lần chạy: 2026-11-14T22:32:12+07:00 )
+
+----------------------------------------
+
+=== Cell 19 [markdown] ===
+First line: ### 5.1. Phân hoạch đầy đủ
+Content:
+### 5.1. Phân hoạch đầy đủ
+
+SRG lazy/insertion, connectivity 4 trên cả ba ảnh; kiểm tra labels int32, mặt nạ biên bool và mọi pixel có nhãn. Lưu hình ảnh/seeds/nhãn, số pixel chưa gán và tỷ lệ gán. [Bảng CSV](../experiments/results/phan_b/synthetic/05_01_partition.csv).
+
+
+----------------------------------------
+
+=== Cell 20 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 21 [code] ===
+First line: b_partition_rows = []
+Code lines count: 18
+Code preview:
+b_partition_rows = []
+b_figure, b_axes = plt.subplots(3, 2, figsize=(10, 11))
+for (b_name, b_image), (b_input_axis, b_label_axis) in zip(b_images.items(), b_axes):
+b_seeds = b_test_seeds[b_name]
+b_labels, b_boundary = b_base[b_name]
+assert b_labels.dtype == np.int32 and b_boundary.dtype == bool
+Outputs: display(image/data); stream(image            | total_pixels | unassigned_pixels | assigned_fraction | status anh_phang        | )
+
+----------------------------------------
+
+=== Cell 22 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Cả 3 ảnh đều không còn pixel chưa gán: anh_phang: 0/4096; gradient_ngang: 0/16384; hai_vung_cau_noi: 0/16384. Các nhãn/mặt nạ đúng shape và dtype. Kết quả chỉ áp dụng cho cấu hình đã chạy.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 23 [markdown] ===
+First line: ### 5.2. Bảo toàn số vùng
+Content:
+### 5.2. Bảo toàn số vùng
+
+So số nhãn với số seeds và kiểm tra nhãn tại từng seed. Dùng kết quả/hình mục 5.1, không thay ảnh hoặc cấu hình. [Bảng CSV](../experiments/results/phan_b/synthetic/05_02_regions.csv).
+
+
+----------------------------------------
+
+=== Cell 24 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 25 [code] ===
+First line: b_region_rows = []
+Code lines count: 10
+Code preview:
+b_region_rows = []
+for b_name, (b_labels, _) in b_base.items():
+b_seeds = b_test_seeds[b_name]
+b_regions = len(np.unique(b_labels))
+b_preserved = np.array_equal(b_labels[b_seeds[:, 0], b_seeds[:, 1]], np.arange(len(b_seeds)))
+assert b_regions == len(b_seeds) and b_preserved
+Outputs: stream(image            | seeds | regions | seeds_preserved | status anh_phang        | 2     | 2       | T)
+
+----------------------------------------
+
+=== Cell 26 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Số nhãn bằng số seeds và seeds được giữ đúng nhãn trên cả ba ảnh: anh_phang: 2 vùng/2 seeds; gradient_ngang: 2 vùng/2 seeds; hai_vung_cau_noi: 3 vùng/3 seeds.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 27 [markdown] ===
+First line: ### 5.3. Đảo thứ tự seeds
+Content:
+### 5.3. Đảo thứ tự seeds
+
+Chạy cùng ảnh với thứ tự seeds gốc/đảo cho raster và insertion. Căn chỉnh theo định danh seed gốc rồi tính số/tỷ lệ pixel khác trên toàn ảnh. Raster được kiểm tra bất biến trên tập đã chạy; insertion được đo cả khi có khác biệt do ties. [Bảng CSV](../experiments/results/phan_b/synthetic/05_03_seed_order.csv).
+
+
+----------------------------------------
+
+=== Cell 28 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 29 [code] ===
+First line: b_order_rows = []
+Code lines count: 25
+Code preview:
+b_order_rows = []
+for b_name, b_image in b_images.items():
+b_seeds = b_test_seeds[b_name]
+b_figure, b_axes = plt.subplots(2, 3, figsize=(11, 7))
+for b_tie, b_axis_row in zip(("raster", "insertion"), b_axes):
+b_original = (b_base[b_name][0] if b_tie == "insertion" else
+Outputs: display(image/data); display(image/data); display(image/data); stream(image            | tie       | different_pixels | total_pixels | different_fraction anh_phang       )
+
+----------------------------------------
+
+=== Cell 30 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Sau căn chỉnh, raster có 0 pixel khác trên cả ba ảnh. Với insertion: anh_phang: 575 pixel khác; gradient_ngang: 0 pixel khác; hai_vung_cau_noi: 0 pixel khác. Trường hợp ảnh phẳng cho thấy ties/thứ tự chèn có thể phá bất biến; không kết luận SRG luôn bất biến với mọi quy tắc.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 31 [markdown] ===
+First line: ### 5.4. Stack / queue / SRG
+Content:
+### 5.4. Stack / queue / SRG
+
+Cùng ảnh, seeds và miền [0,255]; Region Growing T=30, SRG lazy/insertion, connectivity 4. So từng cặp sau căn chỉnh nhãn, không loại pixel −1. [Bảng tổng hợp](../experiments/results/phan_b/synthetic/05_04_all_pairwise.csv).
+
+
+----------------------------------------
+
+=== Cell 32 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 33 [code] ===
+First line: b_method_results = {}
+Code lines count: 10
+Code preview:
+b_method_results = {}
+b_pairwise_rows = []
+for b_name, b_image in b_images.items():
+b_method_results[b_name] = b_compare_methods(
+b_image, b_test_seeds[b_name], b_test_T, b_result_dir,
+"05_04_" + b_name, srg_labels=b_base[b_name][0])
+Outputs: display(image/data); stream(image           | method | T            | unassigned_pixels | assigned_fraction | seeds 05_04_anh_ph); display(image/data); stream(image                | method | T            | unassigned_pixels | assigned_fraction | seeds 05_04_g); display(image/data); stream(image                  | method | T            | unassigned_pixels | assigned_fraction | seeds 05_04)
+
+----------------------------------------
+
+=== Cell 34 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Đã đo đủ chín phép so sánh (ba cặp × ba ảnh) với T=30. anh_phang stack/queue: 0 pixel; anh_phang stack/srg: 1712 pixel; anh_phang queue/srg: 1712 pixel; gradient_ngang stack/queue: 5376 pixel; gradient_ngang stack/srg: 8704 pixel; gradient_ngang queue/srg: 8704 pixel; hai_vung_cau_noi stack/queue: 9 pixel; hai_vung_cau_noi stack/srg: 9 pixel; hai_vung_cau_noi queue/srg: 0 pixel. Pixel −1 vẫn tham gia phép đếm; số bằng 0 là kết quả thực, không bị loại khỏi bảng.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 35 [markdown] ===
+First line: ### 5.5. Ảnh phẳng với hai seeds
+Content:
+### 5.5. Ảnh phẳng với hai seeds
+
+So insertion/raster/random trên ảnh hằng 64×64, seeds (16,16), (48,48), RNG seed 42. Mọi delta bằng 0; đo ảnh hưởng riêng của phá hòa. [Bảng CSV](../experiments/results/phan_b/synthetic/05_05_ties.csv).
+
+
+----------------------------------------
+
+=== Cell 36 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 37 [code] ===
+First line: b_flat_labels = {"insertion": b_base["anh_phang"][0]}
+Code lines count: 17
+Code preview:
+b_flat_labels = {"insertion": b_base["anh_phang"][0]}
+for b_tie in ("raster", "random"):
+np.random.seed(b_rng_seed)
+b_flat_labels[b_tie] = srg(b_flat, b_test_seeds["anh_phang"], tie=b_tie)[0]
+b_figure, b_axes = plt.subplots(1, 3, figsize=(12, 4))
+for b_axis, (b_tie, b_labels) in zip(b_axes, b_flat_labels.items()):
+Outputs: display(image/data); stream(image     | tie_a     | tie_b  | rng_seed | different_pixels | total_pixels | different_fraction anh)
+
+----------------------------------------
+
+=== Cell 38 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Trên ảnh phẳng, insertion/raster: 1712 pixel khác; insertion/random: 1528 pixel khác; raster/random: 3240 pixel khác. Vì mọi delta bằng 0, thứ tự ưu tiên quyết định thứ tự kết nạp và khả năng tiếp cận các vùng. random được cố định seed 42.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 39 [markdown] ===
+First line: ### 5.6. Frames và độ nhạy seeds
+Content:
+### 5.6. Frames và độ nhạy seeds
+
+Ảnh cầu nối, ba seeds đã khai báo. Chụp tám mốc 12,5%…100%; xác nhận frame độc lập và frame cuối khớp SRG. Sensitivity: 20 trial, jitter=3, seed 42, connectivity 4, lazy/insertion; tần suất đổi nhãn so với gốc sau căn chỉnh seed. Seeds dịch không trùng, trong ảnh theo docstring. Lưu [mốc frames](../experiments/results/phan_b/synthetic/05_06_frames.csv), [bảng sensitivity](../experiments/results/phan_b/synthetic/05_06_sensitivity_summary.csv) và bản đồ số thực NPY.
+
+
+----------------------------------------
+
+=== Cell 40 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 41 [code] ===
+First line: b_frame_seeds = b_test_seeds["hai_vung_cau_noi"]
+Code lines count: 39
+Code preview:
+b_frame_seeds = b_test_seeds["hai_vung_cau_noi"]
+np.random.seed(b_rng_seed)
+b_frames = srg_step_frames(b_bridge, b_frame_seeds, n_frames=8, connectivity=4, stale="lazy", tie="insertion")
+assert len(b_frames) == 8
+assert all(not np.shares_memory(first, second) for i, first in enumerate(b_frames) for second in b_frames[i + 1:])
+assert np.array_equal(b_frames[-1], b_base["hai_vung_cau_noi"][0])
+Outputs: display(image/data); stream(frame | target_percent | target_pixels | assigned_pixels | total_pixels 1     | 12.5           | 204); display(image/data); stream(image            | trials | jitter | rng_seed | min_frequency | max_frequency | mean_frequency | non)
+
+----------------------------------------
+
+=== Cell 42 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Tám frame là các bản sao độc lập, số pixel đã gán lần lượt 2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384; frame cuối khớp SRG. Sensitivity trên ảnh cầu nối với 20 trial, jitter=3 có 0 pixel thay đổi, trung bình 0.000000, cực đại 0.000000. Trong cấu hình này seeds nằm sâu trong các vùng đồng nhất và các dịch chuyển đã thử không làm đổi phân vùng; không suy ra mọi ảnh hoặc mọi jitter đều ổn định.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 43 [markdown] ===
+First line: ## 6. Thí nghiệm — SRG so với Region Growing
+Content:
+## 6. Thí nghiệm — SRG so với Region Growing
+
+Giữ cùng ảnh và seeds; ghi ngưỡng T cho Region Growing, cách căn chỉnh nhãn và pixel chưa được gán.
+
+### Phiếu thiết kế — nhóm quyết định trước khi chạy
+
+| Trường | Nội dung do nhóm tự điền |
+| --- | --- |
+| Câu hỏi và giả thuyết | Chưa điền |
+| Ảnh, nguồn, lý do chọn và chỉnh sửa | Chưa chọn |
+| Biến độc lập và tập giá trị quét | Chưa chọn |
+| Yếu tố giữ cố định | Chưa điền |
+| Phép đo, định nghĩa, đơn vị và mẫu số | Chưa chọn |
+| Seed ngẫu nhiên, số lần lặp, cách tổng hợp | Chưa chọn |
+| Bằng chứng cần lưu: ảnh, bảng, đường cong | Chưa điền |
+
+### Kết quả — chỉ điền số đo thật
+
+**Ngữ cảnh 5W1H — điền khi có kết quả thực:**
+- What: đại lượng, đơn vị, ý nghĩa — chưa điền.
+- Why: câu hỏi cần trả lời — chưa điền.
+- When: thời điểm, lần chạy, seed — chưa điền.
+- Where: ảnh, thiết bị và đường dẫn artifact — chưa điền.
+- Who: người thực hiện và cấu hình thuật toán — chưa điền.
+- How: tham số, cách tính, số lần lặp và tổng hợp — chưa điền.
+
+
+| Lần chạy | Giá trị tham số quét | Cấu hình cố định | Phương pháp | Đại lượng / đơn vị | Giá trị | Artifact |
+| --- | --- | --- | --- | --- | --- | --- |
+| Chưa chạy | Chưa chọn | Chưa ghi | Chưa ghi | Chưa chọn | Chưa đo | Chưa có |
+
+Ô dưới để bổ sung khung chạy / vẽ sau khi nhóm chốt thiết kế.
+
+
+----------------------------------------
+
+=== Cell 44 [code] ===
+First line: <EMPTY>
+Code lines count: 0
+Code preview:
+
+Outputs: 
+
+----------------------------------------
+
+=== Cell 45 [markdown] ===
+First line: ### Phân tích và giới hạn — nhóm tự viết
+Content:
+### Phân tích và giới hạn — nhóm tự viết
+
+- Bằng chứng khác biệt giữa hai phương pháp: chưa có.
+- Đường cong / điểm chuyển hành vi khi quét tham số: chưa có.
+- Đại lượng nào thay đổi, tại bước nào, vì sao gây ra hiện tượng: chưa phân tích.
+- Kết quả có khớp giả thuyết không, phạm vi áp dụng và giới hạn: chưa kết luận.
+
+- [ ] Có ít nhất một phép đo và bảng số gốc.
+- [ ] Có đường cong quét tham số, tên trục, đơn vị và chú giải.
+- [ ] Giải thích cơ chế thay vì chỉ nói phương pháp nào tốt hơn.
+
+
+----------------------------------------
+
+=== Cell 46 [markdown] ===
+First line: ### 6.1. So sánh lazy / frozen
+Content:
+### 6.1. So sánh lazy / frozen
+
+Ảnh gradient 128×128, seeds (64,8), (64,80). Giữ connectivity 4, tie insertion; chỉ đổi stale. Đếm pixel khác/tổng pixel, minh họa giá trị tham chiếu trung bình vùng so với cường độ seed. [Bảng CSV](../experiments/results/phan_b/synthetic/06_01_lazy_frozen.csv).
+
+
+----------------------------------------
+
+=== Cell 47 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 48 [code] ===
+First line: b_lazy = b_base["gradient_ngang"][0]
+Code lines count: 15
+Code preview:
+b_lazy = b_base["gradient_ngang"][0]
+b_frozen = srg(b_gradient, b_test_seeds["gradient_ngang"], connectivity=4, stale="frozen", tie="insertion")[0]
+b_stale_count = int(np.count_nonzero(b_lazy != b_frozen))
+b_figure, b_axes = plt.subplots(1, 3, figsize=(12, 4))
+b_show_labels(b_axes[0], b_lazy, b_test_seeds["gradient_ngang"], "lazy · trung bình vùng hiện tại")
+b_show_labels(b_axes[1], b_frozen, b_test_seeds["gradient_ngang"], "frozen · cường độ seed")
+Outputs: display(image/data); stream(image          | connectivity | tie       | different_pixels | total_pixels | different_fraction gra)
+
+----------------------------------------
+
+=== Cell 49 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+lazy/frozen khác 2432/16384 pixel (14.8438%) trên gradient. Hai cấu hình chỉ khác giá trị tham chiếu delta: lazy thích nghi với trung bình vùng, frozen giữ giá trị tại seed; điều này làm đổi ranh giới trên gradient đã chạy.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 50 [markdown] ===
+First line: ### 6.2. Ảnh hưởng phá hòa
+Content:
+### 6.2. Ảnh hưởng phá hòa
+
+Dùng lại đúng kết quả ảnh phẳng ở mục 5.5 để tránh thay cấu hình. Các vùng có thể khác dù mọi delta bằng 0; random được cố định seed 42. [Bảng CSV](../experiments/results/phan_b/synthetic/06_02_ties.csv).
+
+
+----------------------------------------
+
+=== Cell 51 [markdown] ===
+First line: **Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+Content:
+**Khai báo AI — khung chạy kiểm chứng, hiển thị và lưu số đo.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 52 [code] ===
+First line: # Dùng lại đúng kết quả ảnh phẳng ở mục 5.5; không chạy một cấu hình khác ngầm.
+Code lines count: 10
+Code preview:
+# Dùng lại đúng kết quả ảnh phẳng ở mục 5.5; không chạy một cấu hình khác ngầm.
+b_figure, b_axes = plt.subplots(1, 3, figsize=(12, 4))
+for b_axis, (b_tie, b_labels) in zip(b_axes, b_flat_labels.items()):
+b_show_labels(b_axis, b_labels, b_test_seeds["anh_phang"], b_tie)
+b_figure.suptitle(f"Phá hòa · cùng ảnh, cùng seeds, RNG seed={b_rng_seed}")
+b_figure.tight_layout()
+Outputs: display(image/data); stream(image     | tie_a     | tie_b  | rng_seed | different_pixels | total_pixels | different_fraction anh)
+
+----------------------------------------
+
+=== Cell 53 [markdown] ===
+First line: **Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+Content:
+**Nhận xét kiểm chứng — lần chạy 2026-11-14T22:32:12+07:00:**
+
+Bằng chứng từ ảnh phẳng được dùng lại nhất quán với mục 5.5: insertion/raster: 1712 pixel; insertion/random: 1528 pixel; raster/random: 3240 pixel. Đây là một ảnh xác nhận thay phá hòa làm đổi kết quả; không phải tuyên bố một quy tắc tốt hơn trên mọi ảnh.
+
+Số đo/cấu hình đầy đủ trong bảng CSV và output phía trên; người thực hiện theo README.
+
+----------------------------------------
+
+=== Cell 54 [markdown] ===
+First line: ## 7. Chuẩn bị chạy hai ảnh thật
+Content:
+## 7. Chuẩn bị chạy hai ảnh thật
+
+Chưa có ảnh thật trong thư mục ảnh B; hai ô cấu hình mặc định để trống, không lấy ảnh tổng hợp thay thế.
+
+1. Đặt hai ảnh của nhóm vào [images/phan_b](../images/phan_b/), điền tên file ở `path` (ví dụ `anh_that_01.jpg`) và nguồn/quyền sử dụng ở `source`.
+2. Chạy cell để xem ảnh xám, kích thước gốc/làm việc và trục tọa độ. Cạnh dài được giới hạn 256 pixel, giữ tỷ lệ; không phóng to ảnh nhỏ.
+3. Điền seeds theo **ảnh làm việc sau resize**, theo `(row, col)`, không trùng và nằm trong ảnh. Điều chỉnh `T` theo miền `[0,255]`.
+4. Chạy lại để so stack/queue/SRG (connectivity 4, lazy/insertion, RNG seed 42). Màu xám trong ảnh nhãn biểu thị pixel chưa gán; bảng pixel khác giữ trạng thái này trong mẫu số.
+
+Thiếu file hoặc seeds thì hiển thị thông báo và bỏ qua slot đó. Khi đủ cấu hình, hình, bảng so sánh và nguồn/cấu hình được lưu tại [kết quả ảnh thật](../experiments/results/phan_b/real/). Chưa có ảnh thật thì không công bố kết quả ảnh thật. Các hàm OpenCV chỉ dùng để nạp ảnh xám và resize, ngoài phần cài đặt thuật toán.
+
+----------------------------------------
+
+=== Cell 55 [markdown] ===
+First line: **Khai báo AI — chuẩn bị nạp hai ảnh thật, kiểm tra seeds và chạy so sánh.**
+Content:
+**Khai báo AI — chuẩn bị nạp hai ảnh thật, kiểm tra seeds và chạy so sánh.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 56 [code] ===
+First line: def b_run_real_images(cases, max_side=256, image_dir=None, output_dir=None):
+Code lines count: 75
+Code preview:
+def b_run_real_images(cases, max_side=256, image_dir=None, output_dir=None):
+"""Nạp các ô ảnh thật; chỉ chạy khi đủ ảnh và seeds sau resize.
+Không dùng ảnh tổng hợp thay ảnh thật khi thiếu cấu hình. Trả trạng thái
+từng ô để phân biệt chưa cấu hình, lỗi dữ liệu và chạy hoàn tất.
+"""
+max_side = _b_integer(max_side, "max_side", 1)
+Outputs: 
+
+----------------------------------------
+
+=== Cell 57 [markdown] ===
+First line: **Khai báo AI — hai ô cấu hình ảnh thật, chưa có dữ liệu thì bỏ qua.**
+Content:
+**Khai báo AI — hai ô cấu hình ảnh thật, chưa có dữ liệu thì bỏ qua.**
+
+Prompt nguyên văn:
+
+> chạy kiểm thử đi với thêm cell để chuẩn bị chạy ảnh thật (2 ảnh)
+
+----------------------------------------
+
+=== Cell 58 [code] ===
+First line: # Đường dẫn tương đối được tính từ ../images/phan_b/; chưa có ảnh thì để None.
+Code lines count: 10
+Code preview:
+# Đường dẫn tương đối được tính từ ../images/phan_b/; chưa có ảnh thì để None.
+# Bước 1: điền path/source và chạy để xem tọa độ ảnh sau resize.
+# Bước 2: điền seeds (row, col) theo ảnh làm việc rồi chạy lại.
+b_real_cases = [
+{"name": "anh_that_01", "path": None, "source": "", "seeds": [], "T": 30.0},
+{"name": "anh_that_02", "path": None, "source": "", "seeds": [], "T": 30.0},
+Outputs: stream(anh_that_01: chưa cấu hình ảnh — bỏ qua. anh_that_02: chưa cấu hình ảnh — bỏ qua. Trạng thái hai ô ả)
+
+----------------------------------------
+
+=== Cell 59 [markdown] ===
+First line: ## Tổng kết và checklist phần B
+Content:
+## Tổng kết và checklist phần B
+
+- [x] Đủ bốn hàm B và các kiểm tra hồi quy thuật toán.
+- [x] Đủ năm kiểm chứng bắt buộc có output; seed-order ghi riêng ảnh hưởng ties.
+- [x] Có frames, sensitivity, lazy/frozen và bằng chứng ảnh hưởng phá hòa, đã chạy sạch và lưu output.
+- [ ] Hoàn thành thí nghiệm chính: chốt giả thuyết, quét tham số, đường cong và phân tích. Mục 6 còn chờ nhóm thực hiện.
+- [ ] Điền hai ảnh thật, nguồn và seeds; hiện chỉ có ô chuẩn bị, không phải kết quả ảnh thật.
+- [ ] Ghép với A thành một notebook, sửa đường dẫn và chạy sạch trước khi nộp.
+
+Kết quả tổng hợp chỉ chứng minh các trường hợp đã chạy. Chưa có phép quét tham số chính, chưa có kết luận về ảnh thật.
+
+
+----------------------------------------
+

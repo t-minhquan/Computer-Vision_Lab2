@@ -1,0 +1,4 @@
+﻿image,tie_a,tie_b,rng_seed,different_pixels,total_pixels,different_fraction
+anh_phang,insertion,raster,42,1712,4096,0.41796875
+anh_phang,insertion,random,42,1528,4096,0.373046875
+anh_phang,raster,random,42,3240,4096,0.791015625

@@ -1,0 +1,4 @@
+﻿image,method_a,method_b,different_pixels,total_pixels,different_fraction
+05_04_gradient_ngang,stack,queue,5376,16384,0.328125
+05_04_gradient_ngang,stack,srg,8704,16384,0.53125
+05_04_gradient_ngang,queue,srg,8704,16384,0.53125
