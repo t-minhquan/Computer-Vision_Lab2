@@ -1,0 +1,4 @@
+﻿image,method_a,method_b,different_pixels,total_pixels,different_fraction
+anh_that_02,stack,queue,23264,43776,0.5314327485380117
+anh_that_02,stack,srg,34144,43776,0.7799707602339181
+anh_that_02,queue,srg,31932,43776,0.7294407894736842
