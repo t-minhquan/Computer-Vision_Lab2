@@ -11,7 +11,7 @@
 | STT | Họ và Tên | Kỹ thuật |
 | :---: | :---: | :---: |
 | 1 | Tống Minh Quân | Phần B |
-| 2 | Trần Hoàng Thông | Phần B |
+| 2 | Trần Hoàng Thông | Phần A |
 | 3 | Ngô Văn Tuấn | Phần A |
-| 4 | Thái Đăng Khôi | Phần A |
+| 4 | Thái Đăng Khôi | Phần B |
 | 5 | Phạm Văn Tiền | Phần B |
