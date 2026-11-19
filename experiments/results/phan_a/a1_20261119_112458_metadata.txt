@@ -1,0 +1,11 @@
+Run at: 2026-11-19T11:24:58+07:00
+Who: AI-assisted draft; group must review design and conclusions
+Source: six deterministic synthetic squares
+Intensity: uint8 0..255; no normalization to 0..1
+Original/scaled shape: (160, 160)/(480, 480)
+Scale=3; eps=3 pixels in target image
+Matching: directional A->B, many-to-one
+k=0.04; thresh_rel=0.01
+sigma0=0.8; xi=1.25; n_levels=20
+Independent variable: log_thresh=0,10,...,200
+NumPy=2.5.4; Matplotlib=3.11.2

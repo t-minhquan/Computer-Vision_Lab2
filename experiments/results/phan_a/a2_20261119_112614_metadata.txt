@@ -1,0 +1,8 @@
+Run at: 2026-11-19T11:26:14+07:00
+Who: AI-assisted draft; group must review design and conclusions
+Source: deterministic synthetic squares, reused from ANMS verification
+Image: 192x288, uint8 0..255, no random noise
+Harris: sigma_i=2.0; sigma_d=1.4; k=0.04; thresh_rel=0.001
+ANMS c_robust=0.9; occupancy grid=8x12; baseline N=100
+Independent variable: N; all other parameters fixed
+NumPy=2.5.4; Matplotlib=3.11.2

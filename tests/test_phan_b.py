@@ -270,6 +270,23 @@ class RealImagePreparationTests(unittest.TestCase):
                                    type_ignores=[])
             exec(compile(functions, ident, 'exec'), cls.real_ns)
 
+    def test_quiet_comparison_still_saves_results(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch('matplotlib.pyplot.show') as show, patch('builtins.print') as output:
+            folder = Path(directory)
+            image = np.arange(35, dtype=float).reshape(5, 7)
+            result = self.real_ns['b_compare_methods'](
+                image, [(0, 0), (4, 6)], 5, folder, 'quiet',
+                show_figure=False, show_tables=False)
+            show.assert_not_called()
+            output.assert_not_called()
+            self.assertFalse(self.plt.get_fignums())
+            self.assertGreater((folder / 'quiet_methods.png').stat().st_size, 0)
+            for suffix, rows in [('coverage', result['metrics']), ('pairwise', result['pairwise'])]:
+                with (folder / f'quiet_{suffix}.csv').open(encoding='utf-8-sig', newline='') as stream:
+                    saved = list(csv.reader(stream))
+                self.assertEqual(saved[1:], [[str(value) for value in row] for row in rows])
+
     def test_two_missing_real_images_are_skipped(self):
         with tempfile.TemporaryDirectory() as directory, patch('builtins.print'):
             output = Path(directory) / 'results'
